@@ -1,6 +1,6 @@
 @import './fonts.css';
 
-/* Source: /RyzoBee 配色与字体规范.md. Keep literal UI colors in this file. */
+/* Source: /docs/RyzoBee 配色与字体规范.md. Keep literal UI colors in this file. */
 :root {
   --ryzo-orange: #FF6A00;
   --ryzo-black: #000000;

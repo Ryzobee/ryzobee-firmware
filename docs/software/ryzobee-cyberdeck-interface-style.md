@@ -2,7 +2,7 @@
 
 本文定义 Ryzobee 软件界面的赛博终端视觉语言，供产品设计、Figma、前端实现及 AI 生成界面时使用。
 
-品牌颜色与字体的最终依据是仓库根目录的 [`RyzoBee 配色与字体规范.md`](../../RyzoBee%20配色与字体规范.md)。前端实现使用 [`apps/studio-web/src/theme.css`](../../assets/typography/src/theme.css) 中的现有变量。本文负责规定视觉风格和使用方式，不建立另一套品牌色或字体。
+品牌颜色与字体的最终依据是 docs 目录的 [`RyzoBee 配色与字体规范.md`](../RyzoBee%20配色与字体规范.md)。前端实现使用 [`assets/typography/src/theme.css`](../../assets/typography/src/theme.css) 中的现有变量。本文负责规定视觉风格和使用方式，不建立另一套品牌色或字体。
 
 ## 1. 风格名称与定位
 

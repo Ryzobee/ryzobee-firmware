@@ -1,10 +1,23 @@
-# RyzoBee Firmware
+<p align="center">
+  <a href="https://wiki.ryzobee.com/zh/home"><img src="logo/ryzobee-logo.png" width="80" alt="RyzoBee logo"></a>
+</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md)
-
-**V0.10.1 — a touch-first Lua tool platform for RyzoBee RootMaker.**
+<h1 align="center">RYZOBEE FIRMWARE</h1>
+<p align="center"><strong>Your device. Your Lua. Your tools.</strong></p>
+<p align="center">Boot · Connect · Run · Create</p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
+<p align="center"><a href="#build-and-deploy">Build &amp; flash</a> · <a href="docs/software/user-guide-v0.10.1/README.md">User guide</a> · <a href="#desktop-ui-simulator">Simulator</a> · <a href="docs/software/firmware-lua-platform.md">Lua API</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
+<p align="center">V0.10.1 · ESP32-S3 · C + Lua + LVGL · 240×240 touch UI</p>
+<p align="center"><a href="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml"><img src="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml/badge.svg?branch=main" alt="Firmware CI on main"></a> · <a href="#license-status">License status</a></p>
 
 This repository contains the ESP32-S3 system firmware, native 240×240 LVGL UI, bounded Lua application runtime, factory tools, and same-source desktop simulator. C owns the hardware and system services; users build interfaces and peripheral workflows in Lua without adding a dedicated C component for each tool. RyzoBee Studio is maintained separately and is not needed to build this firmware.
+
+<p align="center">
+  <img src="docs/software/user-guide-v0.10.1/assets/home.png" width="240" alt="HOME with simulated network, load and PSRAM values">
+  <img src="docs/software/user-guide-v0.10.1/assets/monitor-live.png" width="240" alt="Factory Lua Monitor showing explicitly simulated log input">
+</p>
+
+<p align="center"><em>HOME and the factory Lua Monitor, captured from the same-source LVGL/SDL simulator at 240×240. Values are demo data, not device measurements.</em></p>
 
 ## Features
 

@@ -1,5 +1,6 @@
 # Documentation / 文档
 
+- [RyzoBee 配色与字体规范](RyzoBee%20配色与字体规范.md)
 - [中文用户指南 V0.10.1](software/user-guide-v0.10.1/README.md)：以当前功能和操作说明为准。
 - [Lua 平台与权限](software/firmware-lua-platform.md)
 - [Lua 通用外设 API](software/firmware-lua-peripherals.md)

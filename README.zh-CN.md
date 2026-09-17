@@ -1,10 +1,23 @@
-# RyzoBee Firmware
+<p align="center">
+  <a href="https://wiki.ryzobee.com/zh/home"><img src="logo/ryzobee-logo.png" width="80" alt="RyzoBee 标志"></a>
+</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md)
-
-**V0.10.1 — 面向 RyzoBee RootMaker 的触摸式 Lua 工具平台。**
+<h1 align="center">RYZOBEE FIRMWARE</h1>
+<p align="center"><strong>从开机界面，到你自己的 Lua 工具。</strong></p>
+<p align="center">启动 · 配网 · 运行 · 创作</p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
+<p align="center"><a href="#从源码部署">编译与烧录</a> · <a href="docs/software/user-guide-v0.10.1/README.md">使用指南</a> · <a href="#桌面模拟器">模拟器</a> · <a href="docs/software/firmware-lua-platform.md">Lua API</a> · <a href="CONTRIBUTING.md">参与贡献</a></p>
+<p align="center">V0.10.1 · ESP32-S3 · C + Lua + LVGL · 240×240 触摸界面</p>
+<p align="center"><a href="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml"><img src="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml/badge.svg?branch=main" alt="main 分支固件编译状态"></a> · <a href="#许可证状态">许可证状态</a></p>
 
 本仓库提供 ESP32-S3 系统固件、原生 240×240 LVGL 界面、有界 Lua 应用运行时、出厂工具和同源桌面模拟器。C 负责硬件与系统服务，用户用 Lua 编写界面和外设业务，不需要为每个工具新增专属 C 组件。RyzoBee Studio 独立维护，编译本固件不依赖 Studio。
+
+<p align="center">
+  <img src="docs/software/user-guide-v0.10.1/assets/home.png" width="240" alt="HOME 首页，网络、负载与 PSRAM 数值为模拟数据">
+  <img src="docs/software/user-guide-v0.10.1/assets/monitor-live.png" width="240" alt="出厂 Lua Monitor，画面明确标注模拟日志输入">
+</p>
+
+<p align="center"><em>HOME 与出厂 Lua Monitor 的同源 LVGL/SDL 模拟器截图，原始尺寸为 240×240；数值为演示数据，不代表实机测量结果。</em></p>
 
 ## 主要特色
 

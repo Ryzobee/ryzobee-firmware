@@ -19,7 +19,7 @@ coroutines must retain the shared cancellation/deadline/heap limits.
 
 ## Visual design
 
-When designing or changing Ryzobee interfaces, read `docs/software/ryzobee-cyberdeck-interface-style.md` first. Treat `RyzoBee 配色与字体规范.md` and `assets/typography/src/theme.css` as the source of truth for color and typography.
+When designing or changing Ryzobee interfaces, read `docs/software/ryzobee-cyberdeck-interface-style.md` first. Treat `docs/RyzoBee 配色与字体规范.md` and `assets/typography/src/theme.css` as the source of truth for color and typography.
 
 ## Repository scope
 

@@ -1,0 +1,7 @@
+local board = require("ryzobee")
+local info = board.info()
+assert(info.chip == "ESP32-S3")
+assert(info.flash_bytes == 16 * 1024 * 1024)
+assert(info.psram_bytes == 2 * 1024 * 1024)
+print("Hello Ryzobee!", _VERSION)
+print("BOOT_LUA_PASS", info.chip, info.flash_bytes, info.psram_bytes)

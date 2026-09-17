@@ -1,0 +1,3 @@
+# Pinned so identical WOFF2 sources produce byte-identical embedded TTF assets
+# in the verified Python 3.9 regeneration environment.
+fonttools[woff]==4.60.2

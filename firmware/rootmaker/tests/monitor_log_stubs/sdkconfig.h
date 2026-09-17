@@ -1,0 +1,10 @@
+#pragma once
+#ifndef CONFIG_LOG_VERSION
+#define CONFIG_LOG_VERSION 1
+#endif
+#ifndef CONFIG_LOG_TIMESTAMP_SOURCE_RTOS
+#define CONFIG_LOG_TIMESTAMP_SOURCE_RTOS 1
+#endif
+#ifndef CONFIG_LOG_MODE_TEXT
+#define CONFIG_LOG_MODE_TEXT 1
+#endif

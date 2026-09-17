@@ -1,0 +1,6 @@
+#pragma once
+#define CONFIG_RYZ_OTA_URL "https://ota.invalid/fixture.bin"
+#define CONFIG_RYZ_OTA_HTTP_TIMEOUT_MS 15000
+#define CONFIG_RYZ_OTA_TASK_STACK_SIZE 8192
+#define CONFIG_RYZ_OTA_TASK_PRIORITY 5
+#define CONFIG_MBEDTLS_CERTIFICATE_BUNDLE 1

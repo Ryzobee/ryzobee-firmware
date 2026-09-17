@@ -1,0 +1,97 @@
+{
+  "schema": "ryzobee-font-assets/v1",
+  "unicode_range": "U+0020-007E",
+  "glyph_count": 95,
+  "fonttools": "4.60.2",
+  "fonts": [
+    {
+      "role": "body",
+      "family": "Noto Sans",
+      "style": "Regular",
+      "weight": 400,
+      "source": "assets/typography/src/assets/fonts/noto-sans-015.woff2",
+      "source_sha256": "51ca196f49a33e79e7870ff88ebd2829a3f627a51e7d690986618f0e7ad2b52d",
+      "file": "noto_sans_regular_ascii.ttf",
+      "bytes": 9628,
+      "sha256": "7f8e1c48bb4570229bccbf15e14206761366b01716a89f370c8c557f4983a880"
+    },
+    {
+      "role": "display",
+      "family": "Teko",
+      "style": "SemiBold",
+      "weight": 600,
+      "source": "assets/typography/src/assets/fonts/teko-119.woff2",
+      "source_sha256": "9f908ba2cfa6103dd08e4e59b6be48fafc790f55c7f718be712d3d13170a93fb",
+      "file": "teko_semibold_ascii.ttf",
+      "bytes": 9396,
+      "sha256": "c67620f052fc43028871fab5b7b8409c0d1c5e2c38cec9ff1d4041fb4f19382a",
+      "extra_codepoints": [
+        "U+00B0"
+      ]
+    },
+    {
+      "role": "body_semibold",
+      "family": "Noto Sans",
+      "style": "SemiBold",
+      "weight": 600,
+      "source": "assets/typography/src/assets/fonts/noto-sans-015.woff2",
+      "source_sha256": "51ca196f49a33e79e7870ff88ebd2829a3f627a51e7d690986618f0e7ad2b52d",
+      "file": "noto_sans_semibold_ascii.ttf",
+      "bytes": 9736,
+      "sha256": "5c0b2b801628f8bb77a0879d3dc32452b1660c7039096f25345c50bb0429b4b5",
+      "extra_codepoints": [
+        "U+00B0"
+      ]
+    },
+    {
+      "role": "body_medium",
+      "family": "Noto Sans",
+      "style": "Medium",
+      "weight": 500,
+      "source": "assets/typography/src/assets/fonts/noto-sans-015.woff2",
+      "source_sha256": "51ca196f49a33e79e7870ff88ebd2829a3f627a51e7d690986618f0e7ad2b52d",
+      "file": "noto_sans_medium_ascii.ttf",
+      "bytes": 9656,
+      "sha256": "e1acfef9f96cf7c52cbf593d40adcb50bb7244e706199f0076dd617e890ccd31",
+      "extra_codepoints": [
+        "U+00B7"
+      ]
+    },
+    {
+      "role": "mono",
+      "family": "Roboto Mono",
+      "style": "Regular",
+      "weight": 400,
+      "source": "firmware/rootmaker/components/ryz_font/sources/roboto_mono/RobotoMono[wght].ttf",
+      "source_sha256": "66a80e79d17e4c7cabd162e2916578a4cc08fd19eef6e2a643305eae9c567b2b",
+      "file": "roboto_mono_regular_ascii.ttf",
+      "bytes": 12528,
+      "sha256": "424b729fb28136675a1500e619572559eff4d66fd5f42754ead66f10fd74770e"
+    },
+    {
+      "role": "mono_medium",
+      "family": "Roboto Mono",
+      "style": "Medium",
+      "weight": 500,
+      "source": "firmware/rootmaker/components/ryz_font/sources/roboto_mono/RobotoMono[wght].ttf",
+      "source_sha256": "66a80e79d17e4c7cabd162e2916578a4cc08fd19eef6e2a643305eae9c567b2b",
+      "file": "roboto_mono_medium_ascii.ttf",
+      "bytes": 12560,
+      "sha256": "5bfbfdc4b9226bfbbd08d693430390fa114939c14a8ddbb68298fa1873c35b3b",
+      "extra_codepoints": [
+        "U+00B7"
+      ]
+    },
+    {
+      "role": "mono_semibold",
+      "family": "Roboto Mono",
+      "style": "SemiBold",
+      "weight": 600,
+      "source": "firmware/rootmaker/components/ryz_font/sources/roboto_mono/RobotoMono[wght].ttf",
+      "source_sha256": "66a80e79d17e4c7cabd162e2916578a4cc08fd19eef6e2a643305eae9c567b2b",
+      "file": "roboto_mono_semibold_ascii.ttf",
+      "bytes": 12584,
+      "sha256": "b7f76f230ba7c114732e9ccf814579a109f2fd372228152c5e36b79fad0f52f9"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "format": "RyzoBee user guide screenshot manifest v1",
+  "guide_version": "V0.10.1",
+  "source_directory": "/var/folders/4r/zln0m62n2xg733zqq87x6syw0000gn/T/ryz-manual-v0101.vw0xHKN00K",
+  "source_kind": "Current same-source firmware UI host render, not a physical device capture",
+  "dimensions": [240, 240],
+  "conversion": "sips BMP to PNG only; no crop, scaling, retouching, or screenshot text replacement",
+  "visual_inspection": "Each selected PNG was opened with view_image at native resolution. No blank/wrong pages or obsolete HOLD 3S labels retained.",
+  "pixel_verification": "21/21 images checked with Pillow: dimensions exactly 240x240 and decoded RGB byte arrays equal to their source BMPs.",
+  "data_policy": "All shown times, filenames, counts, measurements, network values, QR credentials, pair codes, and pass states are DEMO fixtures. They are not device readings, available networks, production credentials, hardware verification, or a guarantee of iPhone discovery.",
+  "route_enum_source": "firmware/rootmaker/components/ryz_system_ui/include/ryz_system_ui.h",
+  "images": [
+    {"file": "boot.png", "source": "sdl-boot.bmp", "purpose": "开机画面与底部动画进度段", "renderer": "SDL"},
+    {"file": "home.png", "source": "sdl-home-fixed-online-240.bmp", "purpose": "首页固定 WLAN 趋势、CPU、LOAD、PSRAM 与 STORAGE", "renderer": "SDL", "note": "在线状态与全部数值为 DEMO"},
+    {"file": "settings.png", "source": "sdl-route-02.bmp", "route": "RYZ_SYSTEM_UI_ROUTE_SETTINGS", "purpose": "设置入口", "renderer": "SDL", "note": "VERSION 右侧 DEMO 是模拟器状态，不是固件版本号"},
+    {"file": "apps.png", "source": "sdl-apps.bmp", "purpose": "APPS 脚本列表", "renderer": "SDL", "note": "5 个条目含 2 个 sample 回归占位，不代表设备出厂脚本数量"},
+    {"file": "app-info.png", "source": "hold-idle.bmp", "purpose": "APP INFO 元信息与 HOLD 2S TO RUN", "renderer": "SDL", "note": "latency.lua 是交互回归样例，V1.0.0 是样例脚本版本；空白日期不是文件系统承诺"},
+    {"file": "hold-down.png", "source": "hold-down.bmp", "purpose": "按下后开始 2 秒长按计时", "renderer": "SDL"},
+    {"file": "hold-progress.png", "source": "hold-progress.bmp", "purpose": "按住时橙色背景逐步填充；示例 1.5 / 2S", "renderer": "SDL"},
+    {"file": "wifi-ap.png", "source": "sdl-route-03.bmp", "route": "RYZ_SYSTEM_UI_ROUTE_AP_SETUP", "purpose": "AP LINK 二维码、AP SSID 与配网入口 IP", "renderer": "SDL", "note": "二维码和 RyzoBee-DEMO 不可用作真实设备配网；用户应扫描自己设备上的二维码"},
+    {"file": "wifi-connected.png", "source": "sdl-route-04.bmp", "route": "RYZ_SYSTEM_UI_ROUTE_WIFI_CONNECTED", "purpose": "Wi-Fi 已连接与 NETWORK INFO / PROVISION 入口", "renderer": "SDL", "note": "DEMO NETWORK、192.0.2.10 为样例；FILE SERVER N/A 不应描述为可用文件上传服务"},
+    {"file": "wifi-empty.png", "source": "sdl-route-11.bmp", "route": "RYZ_SYSTEM_UI_ROUTE_WIFI_NO_NETWORK", "purpose": "未配置 Wi-Fi 时 START WI-FI SETUP 入口", "renderer": "SDL"},
+    {"file": "ble-verify.png", "source": "sdl-ble-verify-240.bmp", "purpose": "BLE 数字比较确认", "renderer": "SDL", "note": "042719 仅为示例；只有两端实际代码一致时才确认"},
+    {"file": "scripts.png", "source": "v5-scripts-settings-content.bmp", "purpose": "启动脚本设置内容区", "renderer": "v5_scripts_ui_test same-source LVGL host fixture", "note": "仅内容区，无状态栏；12 LUA、boot.lua 和 6.2 KB 为测试数据；本轮运行测试 9 组通过"},
+    {"file": "display.png", "source": "sdl-display-default-240.bmp", "purpose": "方向、休眠与亮度设置", "renderer": "SDL", "note": "50% 是示例；灰色 SAVE DISPLAY 表示当前无待保存变更"},
+    {"file": "fault.png", "source": "sdl-route-30.bmp", "route": "RYZ_SYSTEM_UI_ROUTE_SCRIPT_FAULT", "purpose": "Lua 异常停止、诊断链接不可用与 HOME 返回", "renderer": "SDL", "note": "当前帧是 LINK UNAVAILABLE 分支，不是诊断网页已启动"},
+    {"file": "monitor-ready.png", "source": "sdl-monitor-ready.bmp", "purpose": "串口配置完成、APPLY 前", "renderer": "SDL with actual factory Lua script", "note": "源文件名 ready 指配置待应用，不是日志等待页；P3 14/13、38400、8N1 是 DEMO 草稿"},
+    {"file": "monitor-live.png", "source": "sdl-monitor-live.bmp", "purpose": "Monitor 实时日志、PAUSE / CLEAR / CONFIG", "renderer": "SDL with actual factory Lua script", "note": "画面明确标注 SIMULATED INPUT ONLY / NO DEVICE CONNECTED"},
+    {"file": "monitor-config.png", "source": "sdl-monitor-config-system.bmp", "purpose": "Monitor SYSTEM 来源设置", "renderer": "SDL with actual factory Lua script", "note": "SYSTEM 模式下串口字段显示 NOT USED"},
+    {"file": "i2c.png", "source": "sdl-i2c-internal.bmp", "purpose": "I2C 内部总线扫描结果与 PINS 入口", "renderer": "SDL with actual factory Lua script", "note": "0x15、1 FOUND 与 ACK 延迟为虚拟总线响应；地址 ACK 不等于器件身份鉴定"},
+    {"file": "test-hub.png", "source": "sdl-test-hub.bmp", "purpose": "Device Test 五项菜单", "renderer": "SDL with actual factory Lua script", "note": "0 / 5 为样例测试状态"},
+    {"file": "test-touch.png", "source": "sdl-test-touch-complete.bmp", "purpose": "9 格触摸完成后人工 CONFIRM PASS", "renderer": "SDL with actual factory Lua script", "note": "9 / 9 由模拟鼠标事件生成，不是实机触摸通过结论"},
+    {"file": "test-imu.png", "source": "sdl-test-imu.bmp", "purpose": "IMU 三轴运动测试", "renderer": "SDL with actual factory Lua script", "note": "g 值与 MOTION OK 为模拟样本，不是实机测量"}
+  ],
+  "excluded_or_replaced": [
+    {"source": "sdl-route-20.bmp", "reason": "SDL Scripts 服务未接入，显示 STORAGE UNAVAILABLE / CHANGE BOOT SCRIPT N/A；主指南设置图改用本轮实际运行的同源 host 页面内容区"}
+  ]
+}

@@ -1,0 +1,7 @@
+#ifndef LV_CONF_H
+#define LV_CONF_H
+/* Desktop CMake disables its automatic Kconfig loading. Translate the actual
+ * target configuration explicitly, not a hand-maintained approximation. */
+#include "@RYZ_IDF_BUILD@/config/sdkconfig.h"
+#include "@RYZ_LVGL@/src/lv_conf_kconfig.h"
+#endif

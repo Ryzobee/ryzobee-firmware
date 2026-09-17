@@ -1,0 +1,42 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+.local/
+
+# Device backups, captured logs and local test output can contain credentials.
+artifacts/
+*.log
+
+# Rebuild from sdkconfig.defaults and dependencies.lock, not local caches.
+build/
+build-*/
+managed_components/
+firmware/rootmaker/host/vendor/
+firmware/rootmaker/sdkconfig
+firmware/rootmaker/sdkconfig.old
+.cache/
+.pytest_cache/
+.ccache/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+*.o
+*.obj
+*.a
+*.elf
+*.map
+*.bin
+*.dylib
+*.so
+*.exe
+
+# Optional host-side asset and documentation tools.
+node_modules/
+dist/
+.vite/

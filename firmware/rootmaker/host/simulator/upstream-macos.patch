@@ -1,0 +1,34 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -67,7 +67,7 @@
+ 
+ # Add LVGL subdirectory
+ add_subdirectory(lvgl)
+-target_include_directories(lvgl PUBLIC ${PROJECT_SOURCE_DIR} ${SDL2_INCLUDE_DIRS})
++target_include_directories(lvgl PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>" ${SDL2_INCLUDE_DIRS})
+ 
+ set(MAIN_SOURCES src/mouse_cursor_icon.c src/hal/hal.c)
+ set(MAIN_LIBS lvgl lvgl::examples lvgl::demos lvgl::thorvg ${SDL2_LIBRARIES})
+@@ -141,7 +141,8 @@
+   endif()
+ endif()
+ 
+-add_executable(main ${MAIN_SOURCES})
++add_executable(main MACOSX_BUNDLE ${MAIN_SOURCES})
++set_target_properties(main PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "org.ryzobee.lvgl-upstream-demo")
+ target_compile_definitions(main PRIVATE LV_CONF_INCLUDE_SIMPLE)
+ target_link_libraries(main ${MAIN_LIBS})
+ 
+diff --git a/lv_conf.h b/lv_conf.h
+--- a/lv_conf.h
++++ b/lv_conf.h
+@@ -204,7 +204,7 @@
+ #define LV_USE_SNAPSHOT 0
+ 
+ /** Backend that gives the SW renderer vector graphics support. */
+-#define LV_USE_THORVG 0
++#define LV_USE_THORVG 1
+ 
+ #if LV_USE_THORVG
+ /** Build the ThorVG copy shipped with LVGL instead of linking an external one. */

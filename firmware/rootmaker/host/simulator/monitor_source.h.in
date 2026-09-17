@@ -1,0 +1,3 @@
+/* Generated from fs/tool_monitor.lua, byte-for-byte; not a second UI. */
+static const char monitor_source[] = { @RYZ_SIM_MONITOR_BYTES@ };
+static const char monitor_version[] = "@RYZ_SIM_MONITOR_VERSION@";

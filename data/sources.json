@@ -1,0 +1,31 @@
+{
+  "project": "Ryzobee local research index",
+  "collected_at": "2026-08-26T00:00:00+08:00",
+  "policy": "Original summaries and links only; no Wiki mirroring because the homepage access statement conflicts with the CC BY footer.",
+  "sources": [
+    {"title": "Wiki 首页", "url": "https://wiki.ryzobee.com/zh/home", "kind": "wiki", "status": "available"},
+    {"title": "快速入门", "url": "https://wiki.ryzobee.com/zh/fast_guide", "kind": "wiki", "status": "available"},
+    {"title": "RootMaker", "url": "https://wiki.ryzobee.com/zh/root/rootmaker", "kind": "wiki", "status": "available"},
+    {"title": "Yoke 配件系列", "url": "https://wiki.ryzobee.com/zh/Yoke_Model", "kind": "wiki", "status": "available"},
+    {"title": "Yoke-KEYW", "url": "https://wiki.ryzobee.com/zh/Yoke_Model/Yoke-KEYW-ZH", "kind": "wiki", "status": "available"},
+    {"title": "Yoke-MOTO", "url": "https://wiki.ryzobee.com/zh/Yoke_Model/Yoke-MOTO-ZH", "kind": "wiki", "status": "available"},
+    {"title": "Yoke-RAD60", "url": "https://wiki.ryzobee.com/zh/Yoke_Model/Yoke-RAD60-ZH", "kind": "wiki", "status": "available"},
+    {"title": "Yoke-RGBW", "url": "https://wiki.ryzobee.com/zh/Yoke_Model/Yoke-RGBW-ZH", "kind": "wiki", "status": "available"},
+    {"title": "Yoke-TRGBW", "url": "https://wiki.ryzobee.com/zh/Yoke_Model/Yoke-TRGBW-ZH", "kind": "wiki", "status": "available"},
+    {"title": "Yoke-TOUCH4", "url": "https://wiki.ryzobee.com/zh/Yoke_Model/Yoke-TOUCH4-ZH", "kind": "wiki", "status": "available"},
+    {"title": "开发者中心", "url": "https://wiki.ryzobee.com/zh/dev", "kind": "wiki", "status": "available"},
+    {"title": "Arduino 教程", "url": "https://wiki.ryzobee.com/zh/dev/Arduino", "kind": "wiki", "status": "available"},
+    {"title": "RootMaker Arduino API", "url": "https://wiki.ryzobee.com/zh/dev/rootmaker_arduino_api", "kind": "wiki", "status": "available"},
+    {"title": "ESP-IDF", "url": "https://wiki.ryzobee.com/zh/dev/ESPIDF", "kind": "wiki", "status": "under-construction"},
+    {"title": "Zoner 帮助", "url": "https://wiki.ryzobee.com/zh/Zoner", "kind": "wiki", "status": "placeholder"},
+    {"title": "FAQ", "url": "https://wiki.ryzobee.com/zh/faq", "kind": "wiki", "status": "available-shallow"},
+    {"title": "旧开发者入口", "url": "https://wiki.ryzobee.com/zh/developer", "kind": "wiki", "status": "not-found"},
+    {"title": "Zoner 快速指南入口", "url": "https://wiki.ryzobee.com/zh/fase_zoner_guide", "kind": "wiki", "status": "not-found"},
+    {"title": "作品模板入口", "url": "https://wiki.ryzobee.com/zh/blueprint/blueprint_mainpage", "kind": "wiki", "status": "not-found"},
+    {"title": "Ryzobee GitHub", "url": "https://github.com/Ryzobee", "kind": "github", "status": "available"},
+    {"title": "Ryzobee Arduino ESP32", "url": "https://github.com/Ryzobee/Ryzobee_arduino_esp32", "kind": "github", "status": "available"},
+    {"title": "RootMaker Arduino", "url": "https://github.com/Ryzobee/rootmaker_arduino", "kind": "github", "status": "listed-by-org-api"},
+    {"title": "Yoke Arduino Library", "url": "https://github.com/Ryzobee/Yoke_arduino_lib", "kind": "github", "status": "listed-by-org-api"},
+    {"title": "Ryzobee Claude Buddy", "url": "https://github.com/Ryzobee/ryzobee-claude-buddy", "kind": "github", "status": "available"}
+  ]
+}

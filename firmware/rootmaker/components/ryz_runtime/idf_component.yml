@@ -1,0 +1,4 @@
+dependencies:
+  idf: ">=5.5,<6.0"
+  # Match the Lua component used by ESP-Claw fb7b248114bb1b12ba0fe8e03d4b59bdbec292c1.
+  georgik/lua: "==5.5.0~7"

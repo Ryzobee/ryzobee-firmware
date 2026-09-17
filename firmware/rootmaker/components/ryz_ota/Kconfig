@@ -1,0 +1,32 @@
+menu "Ryzobee HTTPS OTA"
+
+config RYZ_OTA_URL
+    string "Firmware image URL"
+    default ""
+    help
+        Fixed HTTPS URL used by the OTA worker. Leave empty to compile the
+        component in a disabled state until a deployment endpoint is chosen.
+        Only lowercase https:// URLs are accepted; HTTP and redirects are
+        rejected. The module does not copy the URL into its public state or
+        application logs. Do not embed credentials or query secrets: the URL
+        remains in the firmware image and ESP-IDF diagnostics may expose it.
+
+config RYZ_OTA_HTTP_TIMEOUT_MS
+    int "HTTPS operation timeout (milliseconds)"
+    range 1000 120000
+    default 15000
+    help
+        Maximum blocking interval for an individual HTTPS operation. A cancel
+        request is cooperative and may take up to this interval to be observed.
+
+config RYZ_OTA_TASK_STACK_SIZE
+    int "OTA worker task stack size (bytes)"
+    range 6144 32768
+    default 8192
+
+config RYZ_OTA_TASK_PRIORITY
+    int "OTA worker task priority"
+    range 1 24
+    default 5
+
+endmenu

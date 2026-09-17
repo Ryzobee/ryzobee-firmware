@@ -1,0 +1,15 @@
+menu "Ryzobee time synchronization"
+
+config RYZ_NTP_SERVER
+    string "Primary NTP server"
+    default "pool.ntp.org"
+    help
+        Hostname used by the asynchronous SNTP client after STA is online.
+
+config RYZ_TIME_TIMEZONE
+    string "POSIX timezone"
+    default "UTC0"
+    help
+        POSIX TZ string used by localtime. The system clock remains Unix UTC.
+
+endmenu

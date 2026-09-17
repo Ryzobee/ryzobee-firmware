@@ -1,0 +1,21 @@
+menu "Ryzobee firmware"
+
+config RYZ_LUA_FREETYPE
+    bool "Enable the optional Lua FreeType font backend"
+    default n
+    help
+        Include FreeType, seven subset TTF files and dynamic Lua glyph caches.
+        Disabled by default: Lua UI uses the same audited static glyph tables
+        as the C system UI, including the factory Monitor's existing sizes.
+        Native C pages always use static fonts regardless of this option.
+
+config RYZ_BOOT_DIAGNOSTICS
+    bool "Run system, display and touch diagnostics before the system menu"
+    default n
+    help
+        Embed and execute the C-owned Lua system self-check and legacy display
+        and touch bring-up screens before starting the Ryzobee system menu.
+        These resources are not user filesystem autorun scripts. Keep this
+        disabled for the product boot flow; enable only for board diagnostics.
+
+endmenu

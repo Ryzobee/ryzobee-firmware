@@ -25,8 +25,9 @@ When designing or changing Ryzobee interfaces, read `docs/software/ryzobee-cyber
 
 This independent repository owns firmware and simulator sources. For Studio integration or simulator packaging, read `docs/software/repository-split.md`. Commit firmware work here; Studio changes belong in the sibling `ryzobee-studio` repository.
 
-Before committing, pushing, or opening a pull request, read `CONTRIBUTING.md` for
-the fixed emoji/type pairs, required scope, Chinese PR sections, and build gate.
+Before implementing firmware changes, committing, pushing, or opening a pull
+request, read `CONTRIBUTING.md` for the firmware version-bump checklist, fixed
+emoji/type pairs, required scope, Chinese PR sections, and build gate.
 Use a feature branch and a PR to update `main`; apply the same process to
 automated changes. Keep build outputs, device backups, and credentials local.
 

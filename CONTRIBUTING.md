@@ -6,11 +6,11 @@
 
 - 从最新 `main` 创建主题分支，例如 `fix/apps-back-touch`、`feat/lua-example`；每个 PR 聚焦一组相关改动。
 - **禁止直接更新 main，包括管理员；所有更新通过 PR。** 不强推、不删除主分支、不绕过保护。
-- 合并前必须通过 **ESP32-S3 build**，这是当前唯一强制 CI 门禁；没有额外强制审批人数。
+- 合并前必须通过 **Firmware version** 与 **ESP32-S3 build** 两项强制 CI 门禁；没有额外强制审批人数。
 - 可以先创建 PR，再由 CI 检查；“编译通过”是**合并前提**，不是创建 PR 的前提。新提交要等待对应的新结果，不能用旧提交的成功状态替代。
-- 按改动风险执行相关 Host、模拟器或实机检查并记录；它们不是本次额外增加的强制 CI 门禁，也不能被编译成功替代。
+- CI 编译后核对实际固件版本，并执行同源 VERSION 页面检查；其它 Host、模拟器或实机检查按改动风险执行并记录，不能被编译成功替代。
 
-**English:** update `main` only through PRs, including administrator changes. The required `ESP32-S3 build` must pass before merging; opening a PR does not need an earlier successful run. No additional approval-count requirement is imposed. Report hardware and simulator checks separately from compilation.
+**English:** update `main` only through PRs, including administrator changes. Both required checks, `Firmware version` and `ESP32-S3 build`, must pass before merging. The build check also verifies the binary version and native VERSION pages. Opening a PR does not need an earlier successful run. No additional approval-count requirement is imposed. Report hardware and simulator checks separately from compilation.
 
 ## 2. Commit 和 PR 标题 / Message format
 
@@ -59,7 +59,8 @@ emoji 后一个空格，前缀小写，范围放英文括号中且**必填**，�
 3. **删除了什么：**删除的功能、代码、接口、资产及替代路径。
 4. **修改了什么：**既有行为、配置、交互或资源变化。
 5. **注意事项：**兼容性、数据覆盖、分区/NVS、无线安全、内存、接线和升级风险。
-6. **验证：**命令、结果、CI 链接，以及实际执行的测试、模拟器或实机检查；未执行说明原因。
+6. **版本更新：**原版本 → 新版本、同步位置和验证结果，按下方[固件版本更新](#固件版本更新)执行。
+7. **验证：**命令、结果、CI 链接，以及实际执行的测试、模拟器或实机检查；未执行说明原因。
 
 UI 改动可附同源模拟器截图，注明原始分辨率、场景和模拟数据。区分“编译成功”“写入校验通过”“正常启动”和“功能验收通过”。
 
@@ -83,6 +84,46 @@ idf.py build
 - UI/API 变化同步更新文档；出厂脚本检查实际打包输入 `firmware/rootmaker/fs`，不要只修改未被打包的示例。
 - 不默认擦除 NVS，不把改分区、删脚本或烧录设备当作无风险验证。
 - 写明剩余问题，不用“全部完成”替代验证边界。
+
+### 固件版本更新
+
+**所有面向 main 的 PR 都必须在同一 PR 中递增实际固件版本，包括纯文档、测试和 CI 改动。**
+不留到合并后或下次烧录，也没有路径过滤、标签或说明文字豁免。没有另行指定发布版本时，
+默认末位加一，例如 `0.10.2 → 0.10.3`；合并前重新核对目标分支，避免并行 PR 重用版本。
+版本必须是无前导零的数字三段 `major.minor.patch`，按数值比较严格大于 PR 目标分支版本。
+
+1. 以 `firmware/rootmaker/CMakeLists.txt` 的 `PROJECT_VER` 为版本源，先更新它，
+   再检查固件构建描述、SETTING → VERSION 页面及同源模拟器是否读取一致的值。
+   界面应沿用版本数据源，不另写一个仅供显示的新版本字符串。
+2. 同步中英文 README 的当前版本、使用/升级说明、相关接口文档中的当前支持状态，
+   以及依赖当前版本的测试或生成资产。保留历史发布记录、旧版本指南和“首次支持版本”的含义，
+   不做全仓库无差别替换。
+3. 运行相关版本测试并重新编译，核对新构建产物的版本元数据；涉及界面显示时核对同源
+   模拟器的 VERSION 页面。只有实际烧录并读取过的设备版本才能作为实机证据。
+4. 提交前在 PR 的“版本更新”中填写原/新版本、同步位置、执行结果及未执行项。
+   存在遗漏时不能将该 PR 宣称为交付完成。
+
+`Firmware version` 对所有 PR 比较目标提交和当前 `PROJECT_VER`，同号、回退、非法或重复
+声明都失败。`ESP32-S3 build` 进一步检查生成配置、构建描述与 `.bin` 中的应用版本，
+并运行原生 Setting → Version → Info 的同源 Host 测试。分支保护要求与 main 保持最新，
+防止两个 PR 同时使用同一个新版本。主分支 push 比较更新前版本；手动运行校验当前版本
+与产物一致性。CI 不代替实机验收。
+
+本地运行（从仓库根目录，先抓取最新 main；产物校验需先构建）：
+
+```sh
+python3 -m unittest discover -s tools/tests -p 'test_check_firmware_version.py'
+python3 tools/check_firmware_version.py --base-ref origin/main
+python3 tools/check_firmware_version.py --build-dir firmware/rootmaker/build
+```
+
+**English:** every PR into main, including documentation, tests and CI, must include a
+strictly increasing numeric three-part firmware version, by default incrementing the last
+number. Use `PROJECT_VER` as the source of truth, synchronize the
+VERSION page, simulator and current documentation, and record verification in the PR.
+The two required checks enforce source-version growth, built-binary consistency and native
+version-page tests. Recheck the target branch before merging. There are no opt-outs.
+Preserve historical versions and distinguish Host evidence from device verification.
 
 ## 5. 架构边界 / Architecture boundaries
 

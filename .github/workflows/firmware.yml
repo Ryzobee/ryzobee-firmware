@@ -16,8 +16,8 @@ concurrency:
 
 jobs:
   firmware-version:
-    # Keep this name stable: main branch protection requires this check.
-    name: Firmware version
+    # Manual checks lack a PR base and must not satisfy the required PR context.
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual firmware version' || 'Firmware version' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -51,8 +51,8 @@ jobs:
             *) exit 1 ;;
           esac
   firmware-build:
-    # Keep this name stable: main branch protection requires this check.
-    name: ESP32-S3 build
+    # Keep the PR context stable; manual builds have a separate check name.
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual ESP32-S3 build' || 'ESP32-S3 build' }}
     needs: firmware-version
     runs-on: ubuntu-24.04
     timeout-minutes: 30

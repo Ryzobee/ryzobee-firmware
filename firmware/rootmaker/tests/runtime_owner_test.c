@@ -8,6 +8,7 @@
 #include "runtime_owner_test_platform.h"
 #include "../components/ryz_runtime/lua_hardware_esp.h"
 #include "ryz_peripheral.h"
+#include "ryz_fs.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -43,6 +44,7 @@ typedef struct {
     _Atomic(const ryz_ui_scene_t *) mounted;
     atomic_bool cleanup_seen;
     const char *source;
+    const char *source_name;
     unsigned timeout_ms;
     unsigned mode;
     ryz_lua_result_t result;
@@ -118,6 +120,81 @@ static void owner_only(void)
 static void worker_only(void)
 {
     CHECK(!pthread_equal(pthread_self(), fixture.owner));
+}
+
+/* A deliberately tiny in-memory backend at the real runtime/ESP seam. This
+ * proves public registration, worker dispatch and cancellation, not on-disk
+ * persistence, flash durability or the production filesystem adapter. */
+static struct {
+    bool enabled, cancel_after_write;
+    unsigned calls;
+    struct {
+        bool present;
+        char name[RYZ_FS_NAME_MAX + 1U];
+        uint8_t data[RYZ_FS_MAX_FILE_BYTES];
+        size_t size;
+    } files[2];
+} virtual_fs;
+
+ryz_fs_result_t ryz_app_fs_call(void *context, const char *app_id,
+    const ryz_fs_request_t *request, ryz_fs_response_t *response)
+{
+    (void)context;
+    worker_only();
+    CHECK(app_id && !strcmp(app_id, "persist.lua"));
+    CHECK(request && response);
+    ++virtual_fs.calls;
+    *response = (ryz_fs_response_t){0};
+    if (!virtual_fs.enabled) return RYZ_FS_UNAVAILABLE;
+    size_t used = 0, count = 0, found = 2, available = 2;
+    for (size_t i = 0; i < 2; ++i) {
+        if (!virtual_fs.files[i].present) { available = i; continue; }
+        ++count;
+        used += virtual_fs.files[i].size;
+        if (request->name && !strcmp(request->name, virtual_fs.files[i].name)) found = i;
+    }
+    if (request->op == RYZ_FS_INFO) {
+        response->info = (ryz_fs_info_t){.used_bytes = used, .file_count = count,
+            .max_file_bytes = RYZ_FS_MAX_FILE_BYTES, .quota_bytes = RYZ_FS_QUOTA_BYTES,
+            .max_files = RYZ_FS_MAX_FILES};
+        return RYZ_FS_OK;
+    }
+    if (request->op == RYZ_FS_LIST) {
+        CHECK(request->entries && request->entries_capacity >= count);
+        for (size_t i = 0; i < 2; ++i) if (virtual_fs.files[i].present) {
+            ryz_fs_entry_t *entry = &request->entries[response->count++];
+            strcpy(entry->name, virtual_fs.files[i].name);
+            entry->size = virtual_fs.files[i].size;
+        }
+        if (count == 2 && strcmp(request->entries[0].name, request->entries[1].name) > 0) {
+            ryz_fs_entry_t tmp = request->entries[0];
+            request->entries[0] = request->entries[1];
+            request->entries[1] = tmp;
+        }
+        return RYZ_FS_OK;
+    }
+    CHECK(request->name && strlen(request->name) <= RYZ_FS_NAME_MAX);
+    if (request->op == RYZ_FS_WRITE) {
+        CHECK(request->data && request->size <= RYZ_FS_MAX_FILE_BYTES);
+        if (found == 2) found = available;
+        if (found == 2) return RYZ_FS_TOO_MANY_FILES;
+        virtual_fs.files[found].present = true;
+        strcpy(virtual_fs.files[found].name, request->name);
+        memcpy(virtual_fs.files[found].data, request->data, request->size);
+        virtual_fs.files[found].size = request->size;
+        if (virtual_fs.cancel_after_write) atomic_store(&fixture.cancel, true);
+        return RYZ_FS_OK;
+    }
+    if (found == 2) return RYZ_FS_NOT_FOUND;
+    if (request->op == RYZ_FS_READ) {
+        CHECK(request->read_buffer && request->read_capacity >= virtual_fs.files[found].size);
+        response->size = virtual_fs.files[found].size;
+        memcpy(request->read_buffer, virtual_fs.files[found].data, response->size);
+        return RYZ_FS_OK;
+    }
+    CHECK(request->op == RYZ_FS_REMOVE);
+    virtual_fs.files[found].present = false;
+    return RYZ_FS_OK;
 }
 
 int64_t esp_timer_get_time(void)
@@ -456,7 +533,8 @@ static void *run_worker(void *unused)
         .tool_call = fixture.mode >= MODE_TOOLS ? tool_admission : NULL,
     };
     ryz_lua_execute_with_options(fixture.source, strlen(fixture.source),
-                                 "=owner-test", fixture.timeout_ms, &options,
+                                 fixture.source_name ? fixture.source_name : "=owner-test",
+                                 fixture.timeout_ms, &options,
                                  &fixture.result);
     CHECK(!atomic_load(&fixture.mounted));
     CHECK(ryz_workbench_io_idle(&fixture.channel));
@@ -464,11 +542,12 @@ static void *run_worker(void *unused)
     return NULL;
 }
 
-static void run(const char *source, unsigned timeout, unsigned mode)
+static void run_named(const char *source, const char *name, unsigned timeout, unsigned mode)
 {
     memset(&fixture, 0, sizeof(fixture));
     fixture.owner = pthread_self();
     fixture.source = source;
+    fixture.source_name = name;
     fixture.timeout_ms = timeout;
     fixture.mode = mode;
     atomic_init(&fixture.cancel, false);
@@ -498,6 +577,9 @@ static void run(const char *source, unsigned timeout, unsigned mode)
     CHECK(fixture.abort_calls == 1 && ryz_workbench_io_idle(&fixture.channel));
     CHECK(fixture.calls[RYZ_IO_ABORT] == 1);
 }
+
+static void run(const char *source, unsigned timeout, unsigned mode)
+{ run_named(source, "=owner-test", timeout, mode); }
 
 static void phase(const char *expected)
 {
@@ -642,6 +724,67 @@ static void finalizer_case(bool app, const char *name)
     } else CHECK(false);
 }
 
+static void filesystem_case(const char *name)
+{
+    for (unsigned dialect = 0; dialect < 2; ++dialect) {
+        memset(&virtual_fs, 0, sizeof(virtual_fs));
+        const char *body = NULL;
+        const char *source_name = dialect ? "@persist.lua" : "persist.lua";
+        if (!strcmp(name, "fs_public_both")) {
+            virtual_fs.enabled = true;
+            body = "local fs=require('fs'); "
+                "for _,n in ipairs({'read','write','remove','list','info'}) do assert(type(fs[n])=='function') end; "
+                "assert(io==nil and package==nil and loadfile==nil); "
+                "local i=assert(fs.info()); assert(i.used_bytes==0 and i.file_count==0 and i.max_file_bytes==8192 "
+                "and i.quota_bytes==32768 and i.max_files==16); assert(#assert(fs.list())==0); "
+                "local v,e=fs.read('missing'); assert(v==nil and e=='not_found'); "
+                "assert(fs.write('zeta.dat','A\\0B')); assert(fs.read('zeta.dat')=='A\\0B'); "
+                "assert(fs.write('alpha.dat','')); assert(fs.read('alpha.dat')==''); "
+                "local files=assert(fs.list()); assert(#files==2 and files[1].name=='alpha.dat' "
+                "and files[1].size==0 and files[2].name=='zeta.dat' and files[2].size==3); "
+                "local bytes=string.rep('x',8192); assert(fs.write('zeta.dat',bytes)); "
+                "assert(fs.read('zeta.dat')==bytes); i=assert(fs.info()); assert(i.file_count==2 and i.used_bytes==8192); "
+                "assert(fs.remove('alpha.dat')); v,e=fs.remove('alpha.dat'); assert(v==nil and e=='not_found'); "
+                "assert(fs.remove('zeta.dat')); i=assert(fs.info()); assert(i.file_count==0 and i.used_bytes==0); "
+                "assert(#assert(fs.list())==0); print('FS_PUBLIC_PASS')";
+        } else if (!strcmp(name, "fs_unavailable_both") || !strcmp(name, "fs_anonymous_both")) {
+            if (!strcmp(name, "fs_anonymous_both")) { source_name = "=serial"; virtual_fs.enabled = true; }
+            body = "local fs=require('fs'); local v,e=fs.read('a'); assert(v==nil and e=='unavailable'); "
+                "v,e=fs.write('a','b'); assert(v==nil and e=='unavailable'); "
+                "v,e=fs.remove('a'); assert(v==nil and e=='unavailable'); "
+                "v,e=fs.list(); assert(v==nil and e=='unavailable'); "
+                "v,e=fs.info(); assert(v==nil and e=='unavailable')";
+        } else {
+            CHECK(!strcmp(name, "fs_post_cancel_both"));
+            virtual_fs.enabled = true;
+            virtual_fs.cancel_after_write = true;
+            body = "local fs=require('fs'); coroutine.resume(coroutine.create(function() "
+                "assert(fs.write('cancel.dat','SAVED')); print('AFTER_FS_CALLBACK') end)); "
+                "error('FS_CANCEL_SWALLOWED')";
+        }
+        char source[4096];
+        int length = snprintf(source, sizeof(source), "%s%s", dialect ? "-- ryz-app/1\n" : "", body);
+        CHECK(length > 0 && (size_t)length < sizeof(source));
+        run_named(source, source_name, 2000, MODE_NORMAL);
+        if (!strcmp(name, "fs_post_cancel_both")) {
+            phase("stopped");
+            CHECK(virtual_fs.calls == 1 && atomic_load(&fixture.cancel));
+            CHECK(!strstr(fixture.result.output, "AFTER_FS_CALLBACK"));
+            CHECK(!strstr(fixture.result.error, "FS_CANCEL_SWALLOWED"));
+            /* Cancellation after a successful callback does not roll back the
+             * write. The fake remains explicit in-memory evidence only. */
+            CHECK(virtual_fs.files[1].present && virtual_fs.files[1].size == 5);
+            CHECK(!memcmp(virtual_fs.files[1].data, "SAVED", 5));
+        } else {
+            phase("done");
+            if (!strcmp(name, "fs_anonymous_both")) CHECK(!virtual_fs.calls);
+            else if (!strcmp(name, "fs_unavailable_both")) CHECK(virtual_fs.calls == 5);
+            else CHECK(virtual_fs.calls == 16 && strstr(fixture.result.output, "FS_PUBLIC_PASS"));
+        }
+        CHECK(fixture.calls[RYZ_IO_ABORT] == 1 && !fixture.mounts && !fixture.updates);
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (argc == 4 && !strcmp(argv[1], "finalizer")) {
@@ -652,7 +795,9 @@ int main(int argc, char **argv)
     }
     CHECK(argc == 2);
     const char *name = argv[1];
-    if(!strcmp(name,"peripheral_public_both")) {
+    if (!strncmp(name, "fs_", 3)) {
+        filesystem_case(name);
+    } else if(!strcmp(name,"peripheral_public_both")) {
         const char *open="local p=assert(require('gpio').open{pin=13,mode='output',initial=1}); ";
         for(unsigned dialect=0;dialect<2;++dialect) {
             char source[512]; const char *prefix=dialect ? "-- ryz-app/1\n" : "";

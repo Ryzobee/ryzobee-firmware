@@ -7,7 +7,7 @@
 <p align="center">Boot · Connect · Run · Create</p>
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center"><a href="#build-and-deploy">Build &amp; flash</a> · <a href="docs/software/user-guide-v0.10.1/README.md">User guide</a> · <a href="#desktop-ui-simulator">Simulator</a> · <a href="docs/software/firmware-lua-platform.md">Lua API</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
-<p align="center">V0.10.1 · ESP32-S3 · C + Lua + LVGL · 240×240 touch UI</p>
+<p align="center">V0.10.2 · ESP32-S3 · C + Lua + LVGL · 240×240 touch UI</p>
 <p align="center"><a href="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml"><img src="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml/badge.svg?branch=main" alt="Firmware CI on main"></a> · <a href="#license-status">License status</a></p>
 
 This repository contains the ESP32-S3 system firmware, native 240×240 LVGL UI, bounded Lua application runtime, factory tools, and same-source desktop simulator. C owns the hardware and system services; users build interfaces and peripheral workflows in Lua without adding a dedicated C component for each tool. RyzoBee Studio is maintained separately and is not needed to build this firmware.
@@ -25,6 +25,7 @@ This repository contains the ESP32-S3 system firmware, native 240×240 LVGL UI, 
 - **Responsive native UI:** static glyphs/icons, partial redraws, gesture cancellation, and shared LVGL display ownership. C UI never uses runtime FreeType.
 - **System-managed connectivity:** password-protected 2.4 GHz provisioning AP, mobile/desktop configuration page, saved-network recovery, secure BLE pairing, and NTP. Manually disabled radios remain disabled after reboot.
 - **Lua DIY APIs:** bounded UI/display/touch and peripheral APIs, explicit IMU initialization, cooperative coroutines, per-job limits, and cancellation cleanup. Wi-Fi/BLE configuration and credentials remain in C; Lua queries connection state.
+- **Persistent app files (V0.10.2):** generic [`fs.read/write/remove/list/info`](docs/software/firmware-lua-filesystem.md) for app-scoped text/binary data, with quotas, integrity checks and failure recovery; no tool-specific native save logic required.
 - **Editable factory tools:** system/UART log monitor, I²C address scanner, and guided board checks are ordinary Lua scripts in [`firmware/rootmaker/fs`](firmware/rootmaker/fs).
 - **Persistent display settings:** ST7789 hardware rotation, brightness preview/save, and idle backlight management.
 - **Maintenance foundations:** USB script transfer, read-only diagnostics on the existing protected AP, version information, and HTTPS OTA components with A/B application partitions.
@@ -80,7 +81,7 @@ Do not commit `build/`, `build-host/`, `managed_components/`, generated `sdkconf
 
 ### 3. Flash and monitor
 
-**A full project flash overwrites the scripts partition**, including user-uploaded files, edits, and `boot.lua`. Save files you need before proceeding. Standard project flashing does **not** erase NVS, so saved Wi-Fi/BLE preferences, bindings, and display settings normally remain. It is not a factory reset; do not add an erase command just to update firmware.
+**A full project flash overwrites the scripts partition**, including user scripts, `boot.lua`, and persistent Lua app data. Save data you need before proceeding. Standard project flashing does **not** erase NVS, so saved Wi-Fi/BLE preferences, bindings, and display settings normally remain. It is not a factory reset; do not add an erase command just to update firmware.
 
 Connect a data-capable USB cable. Close monitors, Studio, or browser serial sessions using the same port. Replace `PORT` with the actual device, such as `/dev/cu.…`, `/dev/ttyACM0`, or `COM3`:
 
@@ -89,7 +90,7 @@ Connect a data-capable USB cable. Close monitors, Studio, or browser serial sess
 idf.py -p PORT flash monitor
 ```
 
-This writes the project's bootloader, partition table, OTA metadata, application, and scripts image. Exit the monitor with **Ctrl+]**. After startup, check **SETTING → VERSION** for **V0.10.1**.
+This writes the project's bootloader, partition table, OTA metadata, application, and scripts image. Exit the monitor with **Ctrl+]**. After startup, check **SETTING → VERSION** for **V0.10.2**.
 
 The supported board uses DTR/RTS automatic download/reset. If connection fails, check the port, cable, and port owner, and keep the error output. One failure does not prove automatic download is unsupported. Only if manual download is necessary, follow the board's BOOT/reset procedure and retry the same scoped flash. Holding BOOT while resetting is different from the running firmware's 5-second exit gesture.
 

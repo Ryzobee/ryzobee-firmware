@@ -24,6 +24,16 @@
  * reject further filesystem work until the enclosing system is restarted. */
 static atomic_bool s_io_fault;
 
+bool ryz_script_store_io_healthy(void)
+{
+    return !atomic_load(&s_io_fault);
+}
+
+void ryz_script_store_latch_io_fault(void)
+{
+    atomic_store(&s_io_fault, true);
+}
+
 int64_t ryz_script_store_platform_utc(void)
 {
     ryz_time_utc_sample_t sample;

@@ -89,7 +89,8 @@ typedef struct {
 } ryz_script_store_status_t;
 
 /**
- * One mounted directory, with all normal file access mediated by this Store.
+ * One mounted directory, with script access mediated by this Store. The trusted
+ * app-data Store uses a separate hidden namespace on the same mounted volume.
  * Init validates the directory and performs recovery; repeating the SAME root
  * is allowed. A different root is rejected after initialization. No mounting,
  * formatting, device operation or user boot migration is performed here.
@@ -117,6 +118,14 @@ esp_err_t ryz_script_store_source_sha256(const char *source, size_t length,
                                         char out_sha256[65]);
 /** Copy-only, no filesystem calls. Capacity is refreshed by init/mutate/recover. */
 esp_err_t ryz_script_store_status(ryz_script_store_status_t *out_status);
+/** Worker-side refresh after other trusted users of the same SPIFFS volume
+ * change files. Does not change the script index/revision or run recovery.
+ * status() remains a copy-only, non-I/O operation for UI callers. */
+esp_err_t ryz_script_store_refresh_capacity(void);
+/** ESP volume-wide descriptor-fault gate shared with app data storage.
+ * A failed close can leak a VFS descriptor; only reboot clears this gate. */
+bool ryz_script_store_io_healthy(void);
+void ryz_script_store_latch_io_fault(void);
 esp_err_t ryz_script_store_recover(ryz_script_store_mutation_t *out_result);
 
 /**

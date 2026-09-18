@@ -4,6 +4,10 @@
 
 2026-09-15：GPIO、轮询定时器、PWM、I²C、SPI、UART、ADC、日志与板载 LED 的新公共接口见[Lua 通用外设](firmware-lua-peripherals.md)。它们同样支持两种普通 Lua 入口，并共享本页的协程取消与无线配置边界；没有向 `ryz-neuro` 增加这些模块。Studio 的旧 `tools.*` 能力目录/SOP 不是这些新模块的使用文档，本轮未扩展其通用句柄分析或生成流程。
 
+V0.10.2 新增通用 `fs.read/write/remove/list/info`，支持按脚本名隔离的持久数据文件。
+详见 [Lua 文件存储](firmware-lua-filesystem.md)。不解除 `io/os/package` 限制，
+也不是某个工具的专用 C 业务实现。
+
 ## 默认关闭 FreeType
 
 `CONFIG_RYZ_LUA_FREETYPE` 默认 `n`。默认固件不嵌入七个 TTF，不链接实际 FreeType 引擎代码，不建立 Lua 动态字形缓存。

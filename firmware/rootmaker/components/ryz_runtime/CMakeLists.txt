@@ -4,7 +4,7 @@ idf_component_register(
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "${ryz_peripheral_i2c_dir}"
     REQUIRES ryz_board ryz_lvgl ryz_tools georgik__lua esp_timer esp_psram spi_flash esp_system
-    PRIV_REQUIRES ryz_provisioning ryz_ble ryz_tool_pins ryz_log ryz_rgb
+    PRIV_REQUIRES ryz_provisioning ryz_ble ryz_tool_pins ryz_log ryz_rgb ryz_app_fs
         esp_driver_gpio esp_driver_uart esp_driver_i2c esp_driver_spi
         esp_driver_ledc esp_adc esp_hw_support log freertos)
 
@@ -60,6 +60,17 @@ ryz_runtime_hash(app_core_sha
     components/ryz_runtime/lua_coroutines.h
     components/ryz_runtime/lua_hardware.h
     components/ryz_runtime/lua_peripherals.h
+    components/ryz_runtime/lua_fs.h
+    components/ryz_runtime/include/ryz_fs.h
+    components/ryz_app_fs/CMakeLists.txt
+    components/ryz_app_fs/ryz_app_fs.c
+    components/ryz_app_fs/ryz_app_fs_esp.c
+    components/ryz_app_fs/ryz_fs_platform.h
+    components/ryz_script_store/CMakeLists.txt
+    components/ryz_script_store/ryz_script_store.c
+    components/ryz_script_store/ryz_script_store_esp.c
+    components/ryz_script_store/ryz_script_store_platform.h
+    components/ryz_script_store/include/ryz_script_store.h
     components/ryz_runtime/include/ryz_peripheral.h
     components/ryz_runtime/peripheral_esp.c
     components/ryz_log/CMakeLists.txt

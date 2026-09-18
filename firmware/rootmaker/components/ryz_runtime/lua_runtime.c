@@ -7,6 +7,7 @@
 #include "lua_hardware.h"
 #include "lua_hardware_esp.h"
 #include "lua_peripherals.h"
+#include "lua_fs.h"
 #include "app_runtime.h"
 #include "display.h"
 #include "touch.h"
@@ -43,6 +44,7 @@ typedef struct {
     ryz_lua_hardware_binding_t hardware;
     ryz_peripheral_session_t peripheral_session;
     ryz_lua_peripheral_binding_t peripherals;
+    ryz_lua_fs_binding_t filesystem;
     int64_t next_yield_us;
     const char *source;
     size_t source_len;
@@ -219,6 +221,7 @@ static int require_native(lua_State *L)
     else if (!strcmp(name, "touch")) lua_getfield(L, LUA_REGISTRYINDEX, "ryzobee.touch");
     else if (ryz_lua_hardware_require(L, name, length)) return 1;
     else if (ryz_lua_peripherals_require(L, name, length)) return 1;
+    else if (ryz_lua_fs_require(L, name, length)) return 1;
     else return luaL_error(L, "module not allowed: %s", name);
     return 1;
 }
@@ -433,7 +436,10 @@ static int protected_run(lua_State *L)
     ctx->peripherals=(ryz_lua_peripheral_binding_t){.call=ryz_peripheral_esp_call,
         .context=&ctx->peripheral_session,.check=check_deadline};
     ryz_lua_peripherals_install(L,&ctx->peripherals);
-    /* No file/network configuration/debug access or catches outside the
+    ctx->filesystem = (ryz_lua_fs_binding_t){.call = ryz_app_fs_call,
+        .check = check_deadline};
+    ryz_lua_fs_install(L, &ctx->filesystem, ctx->name);
+    /* No arbitrary file/network configuration/debug access or catches outside the
      * guarded coroutine boundary that could swallow a timeout. */
     const char *removed[] = {"dofile", "loadfile", "load", "pcall", "xpcall", NULL};
     for (const char **name = removed; *name; ++name) {
@@ -673,6 +679,7 @@ void ryz_lua_execute_with_options(const char *source, size_t length, const char 
             .tool_call = app_tool_call,
             .hardware_call = app_hardware_call,
             .peripheral_call = app_peripheral_call,
+            .fs_call = ryz_app_fs_call,
         };
         ryz_app_execute(source, length, name, timeout_ms, &platform, result);
         return;

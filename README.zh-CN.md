@@ -7,7 +7,7 @@
 <p align="center">启动 · 配网 · 运行 · 创作</p>
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center"><a href="#从源码部署">编译与烧录</a> · <a href="docs/software/user-guide-v0.10.1/README.md">使用指南</a> · <a href="#桌面模拟器">模拟器</a> · <a href="docs/software/firmware-lua-platform.md">Lua API</a> · <a href="CONTRIBUTING.md">参与贡献</a></p>
-<p align="center">V0.10.1 · ESP32-S3 · C + Lua + LVGL · 240×240 触摸界面</p>
+<p align="center">V0.10.2 · ESP32-S3 · C + Lua + LVGL · 240×240 触摸界面</p>
 <p align="center"><a href="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml"><img src="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml/badge.svg?branch=main" alt="main 分支固件编译状态"></a> · <a href="#许可证状态">许可证状态</a></p>
 
 本仓库提供 ESP32-S3 系统固件、原生 240×240 LVGL 界面、有界 Lua 应用运行时、出厂工具和同源桌面模拟器。C 负责硬件与系统服务，用户用 Lua 编写界面和外设业务，不需要为每个工具新增专属 C 组件。RyzoBee Studio 独立维护，编译本固件不依赖 Studio。
@@ -25,6 +25,7 @@
 - **原生界面性能优先：**静态字形和图标、局部刷新、滑动取消误触、统一 LVGL 显示所有权；C 界面不经过运行时 FreeType。
 - **系统统一管理连接：**受密码保护的 2.4 GHz 配网 AP、手机/电脑自适应配网页、保存网络恢复、BLE 安全配对和 NTP；手动关闭无线后，下次开机保持关闭。
 - **面向 DIY 的 Lua：**受控 UI、显示/触摸和外设 API、显式 IMU 初始化、合作式协程、资源限额与退出清理。Wi-Fi/BLE 配置和凭据由 C 管理，Lua 查询连接状态。
+- **应用数据持久化（V0.10.2）：**通用 [`fs.read/write/remove/list/info`](docs/software/firmware-lua-filesystem.md)，按脚本名隔离小型文本/二进制文件，支持限额、校验及失败恢复，不需要为每个工具新增 C 存档逻辑。
 - **可修改的出厂示例：**系统/UART 日志监视、I²C 扫描和板载人工自检，都是 [`firmware/rootmaker/fs`](firmware/rootmaker/fs) 中可修改、删除的普通 Lua 脚本。
 - **持久显示设置：**ST7789 硬件方向、亮度实时预览与保存、空闲背光管理。
 - **维护基础：**USB 上传脚本、现有安全 AP 内的只读诊断、版本信息，以及 HTTPS OTA 和 A/B 应用分区基础组件。
@@ -80,7 +81,7 @@ idf.py build
 
 ### 3. 烧录与串口日志
 
-**全量项目烧录会覆盖 scripts 分区，包括用户上传/修改的脚本及 `boot.lua`。** 操作前另存需要保留的源码。标准流程不擦 NVS，因此 Wi-Fi/BLE 偏好、绑定与显示配置通常保留；它不是恢复出厂设置。正常升级不要额外执行整片擦除。
+**全量项目烧录会覆盖 scripts 分区，包括用户脚本、`boot.lua` 和 Lua 应用数据。** 操作前另存需要保留的内容。标准流程不擦 NVS，因此 Wi-Fi/BLE 偏好、绑定与显示配置通常保留；它不是恢复出厂设置。正常升级不要额外执行整片擦除。
 
 使用支持数据传输的 USB 线，先关闭占用同一端口的日志监视器、Studio 或浏览器串口会话。将 `PORT` 替换为实际端口，例如 `/dev/cu.…`、`/dev/ttyACM0` 或 `COM3`：
 
@@ -89,7 +90,7 @@ idf.py build
 idf.py -p PORT flash monitor
 ```
 
-该命令写入 bootloader、分区表、OTA 元数据、应用和 scripts 镜像。按 **Ctrl+]** 退出监视器。启动后在 **SETTING → VERSION** 核对 **V0.10.1**。
+该命令写入 bootloader、分区表、OTA 元数据、应用和 scripts 镜像。按 **Ctrl+]** 退出监视器。启动后在 **SETTING → VERSION** 核对 **V0.10.2**。
 
 支持的板卡通过 DTR/RTS 自动进入下载并复位。连接失败先检查端口、线缆和占用，保留原始错误，不要仅凭一次失败判断不支持自动下载。确需手动下载时，按板卡 BOOT/复位方法进入下载模式后重试同一烧录范围。按住 BOOT 复位与系统运行时的 5 秒退出不是同一操作。
 

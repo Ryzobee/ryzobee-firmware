@@ -5,6 +5,7 @@
 #include "ryz_tool_call.h"
 #include "ryz_lua_hardware.h"
 #include "ryz_peripheral.h"
+#include "ryz_fs.h"
 
 #define RYZ_APP_ABI "ryz-app/1"
 #define RYZ_APP_CATALOG "ryz-capabilities/1"
@@ -95,6 +96,7 @@ typedef struct {
     ryz_tool_call_fn tool_call; /* Optional; unavailable without an Adapter. */
     ryz_lua_hardware_fn hardware_call; /* Optional; never simulate connectivity. */
     ryz_peripheral_call_fn peripheral_call; /* Optional hardware environment. */
+    ryz_fs_call_fn fs_call; /* Optional app-data backend; absent means unavailable. */
 } ryz_app_platform_t;
 
 bool ryz_app_is_source(const char *source, size_t length);

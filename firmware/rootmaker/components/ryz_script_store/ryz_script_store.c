@@ -656,6 +656,14 @@ esp_err_t ryz_script_store_recover(ryz_script_store_mutation_t *out_result)
     return error;
 }
 
+esp_err_t ryz_script_store_refresh_capacity(void)
+{
+    if (!enter()) return ESP_ERR_TIMEOUT;
+    esp_err_t error = refresh_capacity();
+    leave();
+    return error;
+}
+
 typedef struct {
     size_t count;
     ryz_script_store_entry_t entries[RYZ_SCRIPT_STORE_INDEX_MAX];

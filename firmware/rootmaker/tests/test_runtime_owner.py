@@ -69,6 +69,19 @@ class RuntimeOwnerHostTest(unittest.TestCase):
     def test_public_peripherals_in_both_dialects_cleanup_after_all_job_outcomes(self):
         self.run_case("peripheral_public_both")
 
+    def test_public_fs_in_both_dialects_forwards_binary_empty_maximum_and_sorted_results(self):
+        # In-memory backend; this is facade/worker evidence, not persistence.
+        self.run_case("fs_public_both")
+
+    def test_fs_unavailable_in_both_dialects_is_not_a_fake_success(self):
+        self.run_case("fs_unavailable_both")
+
+    def test_anonymous_eval_cannot_invoke_filesystem_backend_in_either_dialect(self):
+        self.run_case("fs_anonymous_both")
+
+    def test_fs_callback_post_cancel_escapes_coroutine_resume_in_both_dialects(self):
+        self.run_case("fs_post_cancel_both")
+
     def test_legacy_rejects_infinite_gc_registration_before_vm_close(self):
         self.run_case("finalizer_gc_legacy", timeout=2)
 

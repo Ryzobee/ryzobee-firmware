@@ -877,6 +877,16 @@ static void test_status_cached_capacity(void)
     assert(ryz_script_store_remove("refresh.lua", NULL, &result) == ESP_OK);
     assert(ryz_script_store_status(&status) == ESP_OK);
     assert(status.total_bytes == 400000U && status.used_bytes == 6789U);
+    /* Lua data shares the volume but must not mutate the script revision.
+     * Only the worker's explicit refresh queries the filesystem. */
+    uint32_t revision = status.revision;
+    script_store_host_capacity(500000U, 7890U);
+    assert(ryz_script_store_refresh_capacity() == ESP_OK);
+    calls = script_store_host_platform_calls();
+    assert(ryz_script_store_status(&status) == ESP_OK);
+    assert(script_store_host_platform_calls() == calls);
+    assert(status.capacity_valid && status.revision == revision);
+    assert(status.total_bytes == 500000U && status.used_bytes == 7890U);
     script_store_host_real_capacity();
 }
 

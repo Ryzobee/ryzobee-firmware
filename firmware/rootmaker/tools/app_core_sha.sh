@@ -11,6 +11,17 @@ app_files()
     components/ryz_runtime/lua_coroutines.h \
     components/ryz_runtime/lua_hardware.h \
     components/ryz_runtime/lua_peripherals.h \
+    components/ryz_runtime/lua_fs.h \
+    components/ryz_runtime/include/ryz_fs.h \
+    components/ryz_app_fs/CMakeLists.txt \
+    components/ryz_app_fs/ryz_app_fs.c \
+    components/ryz_app_fs/ryz_app_fs_esp.c \
+    components/ryz_app_fs/ryz_fs_platform.h \
+    components/ryz_script_store/CMakeLists.txt \
+    components/ryz_script_store/ryz_script_store.c \
+    components/ryz_script_store/ryz_script_store_esp.c \
+    components/ryz_script_store/ryz_script_store_platform.h \
+    components/ryz_script_store/include/ryz_script_store.h \
     components/ryz_runtime/include/ryz_peripheral.h \
     components/ryz_runtime/peripheral_esp.c \
     components/ryz_log/CMakeLists.txt \

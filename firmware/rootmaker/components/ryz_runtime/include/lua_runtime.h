@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdatomic.h>
+#include "ryz_lua_boot.h"
 
 #define RYZ_LUA_SOURCE_MAX 16384
 #define RYZ_LUA_OUTPUT_MAX 4096
@@ -37,6 +38,9 @@ typedef struct {
      * this common header independent of the app-only tool value contract. */
     int (*tool_call)(void *context, const struct ryz_tool_request *request,
                      struct ryz_tool_reply *reply);
+    /* Optional job-owned BOOT queue. Called synchronously with context above;
+     * no producer callbacks enter Lua, and an absent queue is unavailable. */
+    ryz_boot_poll_fn boot_poll;
 } ryz_lua_options_t;
 
 void ryz_lua_execute_with_options(const char *source, size_t length, const char *name,

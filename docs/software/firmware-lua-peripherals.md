@@ -6,6 +6,11 @@
 ESP-IDF 5.5.4 完整构建。最终证据（开发资料未随公开源码分发）
 区分实现、虚拟外设验证和未进行的实机验收。本轮未烧录。
 
+`feat/boot_event` 分支新增的 [`boot.poll()`](firmware-lua-boot-events.md) 是
+独立、无句柄的实体 BOOT 事件接口，支持 App/legacy；不受下文 GPIO `open`
+参数控制，也不开放 BOOT 引脚重配置。单击/双击/3 秒长按与系统约 5 秒退出的
+关系、固定队列和错误恢复见专页。该新增接口的验证状态不沿用上述旧外设记录。
+
 ## 共同规则
 
 - `require('gpio'/'timer'/'pwm'/'i2c'/'spi'/'uart'/'adc'/'log'/'led')`。

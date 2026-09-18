@@ -3,7 +3,7 @@ idf_component_register(
          "workbench_file_rpc.c" "workbench_job_start.c" "workbench_i2c_rpc.c" "workbench_rgb_rpc.c"
          "workbench_monitor_rpc.c" "workbench_tools.c" "workbench_network_rpc.c" "workbench_apps.c"
          "workbench_telemetry.c" "workbench_scripts.c" "workbench_network.c" "workbench_restart.c"
-         "workbench_version.c" "workbench_boot.c" "workbench_boot_key.c"
+         "workbench_version.c" "workbench_boot.c" "workbench_boot_key.c" "workbench_boot_events.c"
          "workbench_fault.c" "workbench_ble.c"
     INCLUDE_DIRS "include"
     REQUIRES ryz_board ryz_runtime console mbedtls json

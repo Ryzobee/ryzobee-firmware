@@ -13,6 +13,14 @@ app_files()
     components/ryz_runtime/lua_peripherals.h \
     components/ryz_runtime/lua_fs.h \
     components/ryz_runtime/include/ryz_fs.h \
+    components/ryz_runtime/lua_boot.h \
+    components/ryz_runtime/include/ryz_lua_boot.h \
+    components/ryz_workbench/workbench_boot_events.c \
+    components/ryz_workbench/include/workbench_boot_events.h \
+    components/ryz_workbench/workbench_boot_key.c \
+    components/ryz_workbench/include/workbench_boot_key.h \
+    components/ryz_board/boot_button.c \
+    components/ryz_board/include/boot_button.h \
     components/ryz_app_fs/CMakeLists.txt \
     components/ryz_app_fs/ryz_app_fs.c \
     components/ryz_app_fs/ryz_app_fs_esp.c \

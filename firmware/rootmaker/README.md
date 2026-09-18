@@ -11,6 +11,7 @@
 - [Lua 平台契约](../../docs/software/firmware-lua-platform.md)与[外设 API](../../docs/software/firmware-lua-peripherals.md)
 - [同源 LVGL / SDL 模拟器](host/simulator/README.md)
 - [Lua 通用文件存储与持久化](../../docs/software/firmware-lua-filesystem.md)（V0.10.2）
+- [Lua BOOT 单击、双击与长按事件](../../docs/software/firmware-lua-boot-events.md)（`feat/boot_event` 分支新增，保留系统约 5 秒退出）
 
 ## 最短构建路径
 

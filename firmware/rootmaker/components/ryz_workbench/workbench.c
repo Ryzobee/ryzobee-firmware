@@ -4,6 +4,7 @@
 #include "workbench_boot.h"
 #include "workbench_ble.h"
 #include "workbench_boot_key.h"
+#include "workbench_boot_events.h"
 #include "workbench_fault.h"
 #include "ryz_display_settings.h"
 #include "ryz_v5_display.h"
@@ -211,6 +212,10 @@ static TaskHandle_t transmitter, ui_owner, lua_worker;
 static atomic_bool runtime_gateway_ready;
 static ryz_workbench_io_t runtime_channel;
 static workbench_input_t runtime_input;
+/* One bounded input queue for the executing Job, not for retained history.
+ * The UI owner samples GPIO; worker consumption and handoff use job_lock. */
+static ryz_workbench_boot_events_t runtime_boot_events;
+static script_job_t *boot_event_job;
 /* Diagnostics copied under job_lock; input state itself is UI-owner-only. */
 static uint64_t ui_owner_cycles;
 static uint32_t ui_input_dropped;
@@ -1738,6 +1743,32 @@ static int call_runtime_tool(void *opaque, const ryz_tool_request_t *request,
     return ryz_workbench_tools_call(&job->tools, request, reply);
 }
 
+static ryz_boot_result_t call_runtime_boot(void *opaque, ryz_boot_event_t *event)
+{
+    script_job_t *job = opaque;
+    if (!event) return RYZ_BOOT_FAILED;
+    memset(event, 0, sizeof(*event));
+    if (!job || xTaskGetCurrentTaskHandle() != lua_worker ||
+        !atomic_load(&runtime_gateway_ready)) return RYZ_BOOT_UNAVAILABLE;
+    /* A poll must not wait for another task's diagnostics/JSON allocation.
+     * No Lua, GPIO, allocation or display work occurs under this lock. */
+    if (xSemaphoreTake(job_lock, 0) != pdTRUE) return RYZ_BOOT_BUSY;
+    ryz_boot_result_t result = RYZ_BOOT_UNAVAILABLE;
+    if (boot_event_job == job && !atomic_load(&job->cancel))
+        result = ryz_workbench_boot_events_poll(&runtime_boot_events, event);
+    xSemaphoreGive(job_lock);
+    return result;
+}
+
+static void reset_runtime_boot(script_job_t *job)
+{
+    xSemaphoreTake(job_lock, portMAX_DELAY);
+    boot_event_job = job;
+    ryz_workbench_boot_events_reset(&runtime_boot_events,
+                                    job != NULL && boot_button_ready);
+    xSemaphoreGive(job_lock);
+}
+
 static void lua_worker_task(void *unused)
 {
     (void)unused;
@@ -1751,6 +1782,7 @@ static void lua_worker_task(void *unused)
             .context = job,
             .io_call = call_runtime_io,
             .tool_call = call_runtime_tool,
+            .boot_poll = call_runtime_boot,
         };
         ryz_lua_execute_with_options(job->source, strlen(job->source), job->name,
                                      job->timeout_ms, &options, &job->payload->result);
@@ -1858,6 +1890,7 @@ static void execute_task(void *early_display)
         if (xQueueReceive(completion_queue, &job, 0) == pdTRUE) {
             configASSERT(executing == job);
             configASSERT(ryz_workbench_io_idle(&runtime_channel));
+            reset_runtime_boot(NULL);
             job_completion_context_t completion_context = {
                 .shell = &shell,
                 .job = job,
@@ -1908,16 +1941,28 @@ static void execute_task(void *early_display)
             if (touch_ready) sample_runtime_input();
             next_touch = esp_timer_get_time() + SYSTEM_UI_TOUCH_INTERVAL_US;
             executing = job;
+            /* No menu gesture or old Job event can enter a new VM. A key
+             * held across handoff must be stably released before it arms. */
+            reset_runtime_boot(job);
             configASSERT(xQueueSend(worker_queue, &job, 0) == pdTRUE);
         }
         int64_t now = esp_timer_get_time();
         if (boot_button_ready && now >= next_boot_button) {
             next_boot_button = now + SYSTEM_UI_BOOT_BUTTON_INTERVAL_US;
             bool pressed = false;
-            if (ryz_boot_button_read(&pressed) == ESP_OK &&
+            const bool valid = ryz_boot_button_read(&pressed) == ESP_OK;
+            if (valid &&
                 ryz_workbench_boot_key_update(
-                    &boot_key, pressed, (uint32_t)(now / 1000)))
+                    &boot_key, pressed, (uint32_t)(now / 1000))) {
                 handle_boot_button_long_press(&shell, executing);
+                reset_runtime_boot(NULL);
+            }
+            xSemaphoreTake(job_lock, portMAX_DELAY);
+            if (executing && boot_event_job == executing &&
+                !atomic_load(&executing->cancel))
+                ryz_workbench_boot_events_sample(&runtime_boot_events,
+                    pressed, valid, (uint32_t)(now / 1000));
+            xSemaphoreGive(job_lock);
         }
         if (now >= next_network) {
             next_network = now + SYSTEM_UI_NETWORK_INTERVAL_US;

@@ -6,6 +6,7 @@
 #include "lua_hardware.h"
 #include "lua_peripherals.h"
 #include "lua_fs.h"
+#include "lua_boot.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -32,6 +33,7 @@ typedef struct {
     ryz_lua_hardware_binding_t hardware;
     ryz_lua_peripheral_binding_t peripherals;
     ryz_lua_fs_binding_t filesystem;
+    ryz_lua_boot_binding_t boot;
     enum { SCREEN_OWNER_NONE, SCREEN_OWNER_DISPLAY, SCREEN_OWNER_UI } screen_owner;
     enum { INPUT_OWNER_NONE, INPUT_OWNER_TOUCH, INPUT_OWNER_UI } input_owner;
     bool touch_demo_enabled;
@@ -992,6 +994,7 @@ static int require_native(lua_State *L)
     else if (ryz_lua_hardware_require(L, name, name_length)) return 1;
     else if (ryz_lua_peripherals_require(L, name, name_length)) return 1;
     else if (ryz_lua_fs_require(L, name, name_length)) return 1;
+    else if (ryz_lua_boot_require(L, name, name_length)) return 1;
     else return luaL_error(L, "module not allowed: %s", name);
     return 1;
 }
@@ -1019,6 +1022,9 @@ static int protected_run(lua_State *L)
     runtime->filesystem = (ryz_lua_fs_binding_t){.call = runtime->platform->fs_call,
         .context = runtime->platform->context, .check = check};
     ryz_lua_fs_install(L, &runtime->filesystem, runtime->name);
+    runtime->boot = (ryz_lua_boot_binding_t){.poll = runtime->platform->boot_poll,
+        .context = runtime->platform->context, .check = check};
+    ryz_lua_boot_install(L, &runtime->boot);
     const char *removed[] = {"dofile", "loadfile", "load", "pcall", "xpcall", NULL};
     for (const char **name = removed; *name; ++name) { lua_pushnil(L); lua_setglobal(L, *name); }
     lua_pushcfunction(L, captured_print); lua_setglobal(L, "print");

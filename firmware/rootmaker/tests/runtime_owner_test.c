@@ -136,6 +136,31 @@ static struct {
     } files[2];
 } virtual_fs;
 
+/* Explicit copied-event peer, not the real GPIO/debounce/queue producer. The
+ * tests below prove both Lua dialects forward on the worker with the caller's
+ * exact context and consume once across coroutines. */
+static struct {
+    bool enabled, cancel_before, cancel_after, timeout_after;
+    unsigned calls, cursor, count;
+    struct { ryz_boot_result_t result; ryz_boot_event_t event; } replies[32];
+} virtual_boot;
+
+static ryz_boot_result_t boot_poll(void *context, ryz_boot_event_t *event)
+{
+    CHECK(context == &fixture);
+    worker_only();
+    CHECK(event);
+    ++virtual_boot.calls;
+    if (virtual_boot.cancel_after) atomic_store(&fixture.cancel, true);
+    if (virtual_boot.timeout_after) vTaskDelay(fixture.timeout_ms + 20U);
+    if (virtual_boot.cursor == virtual_boot.count) {
+        memset(event, 0xff, sizeof(*event)); /* EMPTY has no usable payload. */
+        return RYZ_BOOT_EMPTY;
+    }
+    *event = virtual_boot.replies[virtual_boot.cursor].event;
+    return virtual_boot.replies[virtual_boot.cursor++].result;
+}
+
 ryz_fs_result_t ryz_app_fs_call(void *context, const char *app_id,
     const ryz_fs_request_t *request, ryz_fs_response_t *response)
 {
@@ -527,10 +552,12 @@ static int tool_admission(void *context, const struct ryz_tool_request *request,
 static void *run_worker(void *unused)
 {
     (void)unused;
+    if (virtual_boot.cancel_before) atomic_store(&fixture.cancel, true);
     const ryz_lua_options_t options = {
         .cancel = &fixture.cancel, .output = output, .context = &fixture,
         .io_call = io_call,
         .tool_call = fixture.mode >= MODE_TOOLS ? tool_admission : NULL,
+        .boot_poll = virtual_boot.enabled ? boot_poll : NULL,
     };
     ryz_lua_execute_with_options(fixture.source, strlen(fixture.source),
                                  fixture.source_name ? fixture.source_name : "=owner-test",
@@ -785,8 +812,162 @@ static void filesystem_case(const char *name)
     }
 }
 
+static void boot_case(const char *name)
+{
+    unsigned cases = 0;
+    for (unsigned dialect = 0; dialect < 2; ++dialect) {
+        memset(&virtual_boot, 0, sizeof(virtual_boot));
+        virtual_boot.enabled = true;
+        if (!strcmp(name, "boot_public_both")) {
+            virtual_boot.count = 3;
+            virtual_boot.replies[0].event = (ryz_boot_event_t){RYZ_BOOT_CLICK, 0, 0};
+            virtual_boot.replies[1].event = (ryz_boot_event_t){RYZ_BOOT_DOUBLE_CLICK, UINT32_MAX, 2999};
+            virtual_boot.replies[2].event = (ryz_boot_event_t){RYZ_BOOT_LONG_PRESS, UINT32_C(2147483648), 3000};
+            run_lua_body(dialect, "local b=require('boot'); assert(b==require('boot')); "
+                "assert(math.maxinteger==2147483647 and b.configure==nil and b.on==nil and b.pin==nil); "
+                "local a=table.pack(b.poll()); assert(a.n==1); local e=a[1]; "
+                "assert(e.type=='click' and e.held_ms==0 and e.timestamp_ms=='0'); "
+                "local n=0; for _ in pairs(e) do n=n+1 end; assert(n==3); "
+                "e=assert(b.poll()); assert(e.type=='double_click' and e.held_ms==2999 "
+                "and math.type(e.held_ms)=='integer' and e.timestamp_ms=='4294967295'); "
+                "e=assert(b.poll()); assert(e.type=='long_press' and e.held_ms==3000 "
+                "and e.timestamp_ms=='2147483648'); a=table.pack(b.poll()); "
+                "assert(a.n==1 and a[1]==nil); print('BOOT_PUBLIC_PASS')", 2000, MODE_NORMAL);
+            phase("done"); CHECK(virtual_boot.calls == 4 && virtual_boot.cursor == 3); ++cases;
+        } else if (!strcmp(name, "boot_no_backend_both")) {
+            virtual_boot.enabled = false;
+            run_lua_body(dialect, "local a=table.pack(require('boot').poll()); "
+                "assert(a.n==2 and a[1]==nil and a[2]=='unavailable')", 2000, MODE_NORMAL);
+            phase("done"); CHECK(!virtual_boot.calls); ++cases;
+        } else if (!strcmp(name, "boot_errors_both")) {
+            static const ryz_boot_result_t codes[] = {RYZ_BOOT_UNAVAILABLE, RYZ_BOOT_BUSY,
+                RYZ_BOOT_OVERFLOW, RYZ_BOOT_FAILED, (ryz_boot_result_t)-1, (ryz_boot_result_t)123};
+            static const char *reasons[] = {"unavailable", "busy", "overflow", "failed", "failed", "failed"};
+            for (unsigned i = 0; i < sizeof(codes) / sizeof(codes[0]); ++i) {
+                virtual_boot.cursor = virtual_boot.calls = 0; virtual_boot.count = 1;
+                virtual_boot.replies[0].result = codes[i];
+                memset(&virtual_boot.replies[0].event, 0xff, sizeof(ryz_boot_event_t));
+                char body[256];
+                snprintf(body, sizeof(body), "local a=table.pack(require('boot').poll()); "
+                    "assert(a.n==2 and a[1]==nil and a[2]=='%s')", reasons[i]);
+                run_lua_body(dialect, body, 2000, MODE_NORMAL);
+                phase("done"); CHECK(virtual_boot.calls == 1); ++cases;
+            }
+        } else if (!strcmp(name, "boot_invalid_payload_both")) {
+            static const ryz_boot_event_t events[] = {
+                {(ryz_boot_event_kind_t)-1, 1, 20}, {(ryz_boot_event_kind_t)99, 1, 20},
+                {RYZ_BOOT_CLICK, 1, 3000}, {RYZ_BOOT_CLICK, 1, UINT32_MAX},
+                {RYZ_BOOT_DOUBLE_CLICK, 1, 3000}, {RYZ_BOOT_DOUBLE_CLICK, 1, UINT32_MAX},
+                {RYZ_BOOT_LONG_PRESS, 1, 0}, {RYZ_BOOT_LONG_PRESS, 1, 2999},
+                {RYZ_BOOT_LONG_PRESS, 1, 3001}, {RYZ_BOOT_LONG_PRESS, 1, UINT32_MAX},
+            };
+            for (unsigned i = 0; i < sizeof(events) / sizeof(events[0]); ++i) {
+                virtual_boot.cursor = virtual_boot.calls = 0; virtual_boot.count = 1;
+                virtual_boot.replies[0].event = events[i];
+                run_lua_body(dialect, "local a=table.pack(require('boot').poll()); "
+                    "assert(a.n==2 and a[1]==nil and a[2]=='failed')", 2000, MODE_NORMAL);
+                phase("done"); CHECK(virtual_boot.calls == 1); ++cases;
+            }
+        } else if (!strcmp(name, "boot_arguments_both")) {
+            static const char *bodies[] = {"require('boot').poll(nil)", "require('boot').poll(1)",
+                "require('boot').poll(true)", "require('boot').poll('click')", "require('boot').poll({})",
+                "require('boot').poll(function() end)", "require('boot'):poll()", "require('boot\\0other')"};
+            for (unsigned i = 0; i < sizeof(bodies) / sizeof(bodies[0]); ++i) {
+                run_lua_body(dialect, bodies[i], 2000, MODE_NORMAL);
+                phase("runtime"); CHECK(!virtual_boot.calls); ++cases;
+            }
+        } else if (!strcmp(name, "boot_coroutine_both")) {
+            virtual_boot.count = 3;
+            for (unsigned i = 0; i < 3; ++i)
+                virtual_boot.replies[i].event = (ryz_boot_event_t){RYZ_BOOT_CLICK, i + 10U, 100};
+            run_lua_body(dialect, "local b=require('boot'); local co=coroutine.create(function() "
+                "assert(b.poll().timestamp_ms=='10'); coroutine.yield(); "
+                "assert(b.poll().timestamp_ms=='12') end); assert(coroutine.resume(co)); "
+                "assert(b.poll().timestamp_ms=='11'); assert(coroutine.resume(co)); "
+                "assert(b.poll()==nil)", 2000, MODE_NORMAL);
+            phase("done"); CHECK(virtual_boot.calls == 4 && virtual_boot.cursor == 3); ++cases;
+        } else if (!strcmp(name, "boot_cancel_both")) {
+            virtual_boot.cancel_before = true;
+            run_lua_body(dialect, "require('boot').poll(); error('ESCAPED')", 2000, MODE_NORMAL);
+            phase("stopped"); CHECK(!virtual_boot.calls); ++cases;
+            virtual_boot.cancel_before = false; virtual_boot.cancel_after = true;
+            for (unsigned co = 0; co < 2; ++co) {
+                virtual_boot.calls = 0;
+                run_lua_body(dialect, co ?
+                    "coroutine.resume(coroutine.create(function() require('boot').poll() end)); error('SWALLOWED')" :
+                    "require('boot').poll(); error('ESCAPED')", 2000, MODE_NORMAL);
+                phase("stopped"); CHECK(virtual_boot.calls == 1);
+                CHECK(!strstr(fixture.result.error, "ESCAPED") && !strstr(fixture.result.error, "SWALLOWED")); ++cases;
+            }
+        } else {
+            CHECK(!strcmp(name, "boot_timeout_both"));
+            virtual_boot.timeout_after = true;
+            for (unsigned co = 0; co < 2; ++co) {
+                virtual_boot.calls = 0;
+                run_lua_body(dialect, co ?
+                    "coroutine.resume(coroutine.create(function() require('boot').poll() end)); error('SWALLOWED')" :
+                    "require('boot').poll(); error('ESCAPED')", 50, MODE_NORMAL);
+                phase("timeout"); CHECK(virtual_boot.calls == 1);
+                CHECK(!strstr(fixture.result.error, "ESCAPED") && !strstr(fixture.result.error, "SWALLOWED")); ++cases;
+            }
+        }
+        CHECK(!fixture.mounts && !fixture.updates);
+    }
+    printf("BOOT_LUA_CASES %u\n", cases);
+    memset(&virtual_boot, 0, sizeof(virtual_boot));
+}
+
+static void boot_demo_case(const char *path)
+{
+    FILE *file = fopen(path, "rb"); CHECK(file);
+    char *source = malloc(RYZ_LUA_SOURCE_MAX + 1U); CHECK(source);
+    size_t size = fread(source, 1, RYZ_LUA_SOURCE_MAX + 1U, file);
+    CHECK(!ferror(file) && size > 0 && size <= RYZ_LUA_SOURCE_MAX && fclose(file) == 0);
+    source[size] = 0;
+    CHECK(strncmp(source, "-- ryz-app/1\n", 13U) == 0);
+    for (unsigned mode = 0; mode < 3; ++mode) {
+        memset(&virtual_boot, 0, sizeof(virtual_boot)); virtual_boot.enabled = true;
+        if (mode == 0) {
+            virtual_boot.count = 26;
+            virtual_boot.replies[0].result = RYZ_BOOT_EMPTY;
+            virtual_boot.replies[1].result = RYZ_BOOT_BUSY;
+            virtual_boot.replies[2].result = RYZ_BOOT_OVERFLOW;
+            for (unsigned i = 3; i < 26; ++i) {
+                ryz_boot_event_kind_t kind = (ryz_boot_event_kind_t)((i - 3U) % 3U);
+                virtual_boot.replies[i].event = (ryz_boot_event_t){kind, UINT32_MAX,
+                    kind == RYZ_BOOT_LONG_PRESS ? 3000U : 100U};
+            }
+        } else {
+            virtual_boot.count = 1;
+            virtual_boot.replies[0].result = mode == 1 ? RYZ_BOOT_UNAVAILABLE : RYZ_BOOT_FAILED;
+        }
+        run_named(source, "@boot_events_demo.lua", 2000, MODE_NORMAL); phase("done");
+        if (mode == 0) {
+            CHECK(virtual_boot.calls == 26);
+            CHECK(strstr(fixture.result.output, "CLICK HELD=100MS AT=4294967295"));
+            CHECK(strstr(fixture.result.output, "DOUBLE_CLICK HELD=100MS AT=4294967295"));
+            CHECK(strstr(fixture.result.output, "LONG_PRESS HELD=3000MS AT=4294967295"));
+            CHECK(strstr(fixture.result.output, "BOOT OVERFLOW:"));
+            CHECK(strstr(fixture.result.output, "BOOT EVENT DEMO COMPLETE"));
+            CHECK(!strstr(fixture.result.output, "BOOT ERROR:"));
+        } else {
+            CHECK(virtual_boot.calls == 1);
+            CHECK(strstr(fixture.result.output, mode == 1 ? "BOOT ERROR: unavailable" : "BOOT ERROR: failed"));
+            CHECK(!strstr(fixture.result.output, "BOOT EVENT DEMO COMPLETE"));
+        }
+        CHECK(!fixture.result.output_truncated);
+    }
+    free(source);
+    memset(&virtual_boot, 0, sizeof(virtual_boot));
+}
+
 int main(int argc, char **argv)
 {
+    if (argc == 3 && !strcmp(argv[1], "boot_demo")) {
+        boot_demo_case(argv[2]);
+        puts("RUNTIME_OWNER_PASS: actual boot_events_demo.lua, 3 host scenarios");
+        return 0;
+    }
     if (argc == 4 && !strcmp(argv[1], "finalizer")) {
         CHECK(!strcmp(argv[2], "app") || !strcmp(argv[2], "legacy"));
         finalizer_case(!strcmp(argv[2], "app"), argv[3]);
@@ -795,7 +976,9 @@ int main(int argc, char **argv)
     }
     CHECK(argc == 2);
     const char *name = argv[1];
-    if (!strncmp(name, "fs_", 3)) {
+    if (!strncmp(name, "boot_", 5)) {
+        boot_case(name);
+    } else if (!strncmp(name, "fs_", 3)) {
         filesystem_case(name);
     } else if(!strcmp(name,"peripheral_public_both")) {
         const char *open="local p=assert(require('gpio').open{pin=13,mode='output',initial=1}); ";

@@ -108,6 +108,12 @@ python firmware/rootmaker/tools/board_lua.py --port PORT \
 
 This writes or replaces `ui_demo.lua`; it does not run it or enable autostart. Start it from APPS. Read the [Lua platform contract](docs/software/firmware-lua-platform.md), [peripheral API](docs/software/firmware-lua-peripherals.md), and factory examples before driving hardware.
 
+The `feat/boot_event` branch adds [`boot.poll()`](docs/software/firmware-lua-boot-events.md)
+for click, double-click and 3-second long-press events. The C-owned 5-second exit remains;
+a long press used to exit can also deliver the earlier 3-second event. See the bounded
+[Lua example](firmware/rootmaker/scripts/boot_events_demo.lua). This branch feature is not
+implied by the V0.10.2 version label or by a simulator without an input backend.
+
 ## Desktop UI simulator
 
 After a successful target build, install SDL2, CMake, Ninja, and a Clang/GCC host toolchain. From the repository root:

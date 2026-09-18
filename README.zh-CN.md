@@ -108,6 +108,11 @@ python firmware/rootmaker/tools/board_lua.py --port PORT \
 
 该命令写入或覆盖 `ui_demo.lua`，不会自动运行或设置自启；从 APPS 启动即可。操作外设前阅读 [Lua 平台契约](docs/software/firmware-lua-platform.md)、[外设 API](docs/software/firmware-lua-peripherals.md)，参考出厂脚本，并核对接线、供电和电平。
 
+`feat/boot_event` 分支增加 [`boot.poll()`](docs/software/firmware-lua-boot-events.md)
+单击、双击及 3 秒长按事件，C 所有的约 5 秒退出保留；为了退出而持续按住也可能
+先收到 3 秒事件。可参考[有界 Lua 示例](firmware/rootmaker/scripts/boot_events_demo.lua)。
+该分支功能不由 V0.10.2 版本号自动证明，也不等同于无输入后端的模拟器已支持实体按键。
+
 ## 桌面模拟器
 
 先成功完成目标固件编译，再为本机安装 SDL2、CMake、Ninja 和 Clang/GCC。从仓库根目录执行：

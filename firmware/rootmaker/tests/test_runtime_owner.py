@@ -69,6 +69,33 @@ class RuntimeOwnerHostTest(unittest.TestCase):
     def test_public_peripherals_in_both_dialects_cleanup_after_all_job_outcomes(self):
         self.run_case("peripheral_public_both")
 
+    def test_boot_three_events_exact_uint32_timestamp_and_empty_in_both_dialects(self):
+        self.run_case("boot_public_both")
+
+    def test_boot_absent_callback_is_unavailable_without_gpio_fallback(self):
+        self.run_case("boot_no_backend_both")
+
+    def test_boot_known_and_unknown_results_in_both_dialects(self):
+        self.run_case("boot_errors_both")
+
+    def test_boot_rejects_invalid_event_kinds_and_duration_payloads(self):
+        self.run_case("boot_invalid_payload_both")
+
+    def test_boot_rejects_arguments_before_entering_callback(self):
+        self.run_case("boot_arguments_both")
+
+    def test_boot_coroutines_consume_the_same_queue_once(self):
+        self.run_case("boot_coroutine_both")
+
+    def test_boot_cancel_before_and_after_callback_cannot_be_swallowed(self):
+        self.run_case("boot_cancel_both")
+
+    def test_boot_callback_timeout_cannot_be_swallowed(self):
+        self.run_case("boot_timeout_both")
+
+    def test_actual_boot_demo_three_events_empty_busy_overflow_and_terminal_errors(self):
+        self.run_case(["boot_demo", str(ROOT / "scripts/boot_events_demo.lua")])
+
     def test_public_fs_in_both_dialects_forwards_binary_empty_maximum_and_sorted_results(self):
         # In-memory backend; this is facade/worker evidence, not persistence.
         self.run_case("fs_public_both")

@@ -8,6 +8,11 @@ V0.10.2 新增通用 `fs.read/write/remove/list/info`，支持按脚本名隔离
 详见 [Lua 文件存储](firmware-lua-filesystem.md)。不解除 `io/os/package` 限制，
 也不是某个工具的专用 C 业务实现。
 
+`feat/boot_event` 分支增加 [Lua BOOT 按键事件](firmware-lua-boot-events.md)：
+App/legacy 通过 `require('boot').poll()` 消费单击、双击和 3 秒长按。
+GPIO 与消抖归 C 管理，约 5 秒的系统退出保留；为退出而长按也可能先收到
+3 秒事件，不能将它当作互斥的安全确认。本接口尚不代表已发布版本。
+
 ## 默认关闭 FreeType
 
 `CONFIG_RYZ_LUA_FREETYPE` 默认 `n`。默认固件不嵌入七个 TTF，不链接实际 FreeType 引擎代码，不建立 Lua 动态字形缓存。

@@ -1,6 +1,7 @@
 #include "ryz_qr_encoder.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "esp_log.h"
 #include "qrcode.h"

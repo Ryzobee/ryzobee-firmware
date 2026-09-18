@@ -1,4 +1,4 @@
-# RyzoBee RootMaker firmware — V0.10.2
+# RyzoBee RootMaker firmware — V0.10.3
 
 这里是 ESP32-S3 的 ESP-IDF 工程入口，包含 C 系统固件、LVGL 界面、Lua 运行时、出厂脚本、Host 测试与模拟器。
 
@@ -11,7 +11,7 @@
 - [Lua 平台契约](../../docs/software/firmware-lua-platform.md)与[外设 API](../../docs/software/firmware-lua-peripherals.md)
 - [同源 LVGL / SDL 模拟器](host/simulator/README.md)
 - [Lua 通用文件存储与持久化](../../docs/software/firmware-lua-filesystem.md)（V0.10.2）
-- [Lua BOOT 单击、双击与长按事件](../../docs/software/firmware-lua-boot-events.md)（`feat/boot_event` 分支新增，保留系统约 5 秒退出）
+- [Lua BOOT 单击、双击与长按事件](../../docs/software/firmware-lua-boot-events.md)（V0.10.3 包含，保留系统约 5 秒退出）
 
 ## 最短构建路径
 

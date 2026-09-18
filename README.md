@@ -7,7 +7,7 @@
 <p align="center">Boot · Connect · Run · Create</p>
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center"><a href="#build-and-deploy">Build &amp; flash</a> · <a href="docs/software/user-guide-v0.10.1/README.md">User guide</a> · <a href="#desktop-ui-simulator">Simulator</a> · <a href="docs/software/firmware-lua-platform.md">Lua API</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
-<p align="center">V0.10.2 · ESP32-S3 · C + Lua + LVGL · 240×240 touch UI</p>
+<p align="center">V0.10.3 · ESP32-S3 · C + Lua + LVGL · 240×240 touch UI</p>
 <p align="center"><a href="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml"><img src="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml/badge.svg?branch=main" alt="Firmware CI on main"></a> · <a href="#license-status">License status</a></p>
 
 This repository contains the ESP32-S3 system firmware, native 240×240 LVGL UI, bounded Lua application runtime, factory tools, and same-source desktop simulator. C owns the hardware and system services; users build interfaces and peripheral workflows in Lua without adding a dedicated C component for each tool. RyzoBee Studio is maintained separately and is not needed to build this firmware.
@@ -90,7 +90,7 @@ Connect a data-capable USB cable. Close monitors, Studio, or browser serial sess
 idf.py -p PORT flash monitor
 ```
 
-This writes the project's bootloader, partition table, OTA metadata, application, and scripts image. Exit the monitor with **Ctrl+]**. After startup, check **SETTING → VERSION** for **V0.10.2**.
+This writes the project's bootloader, partition table, OTA metadata, application, and scripts image. Exit the monitor with **Ctrl+]**. After startup, check **SETTING → VERSION** for **V0.10.3**.
 
 The supported board uses DTR/RTS automatic download/reset. If connection fails, check the port, cable, and port owner, and keep the error output. One failure does not prove automatic download is unsupported. Only if manual download is necessary, follow the board's BOOT/reset procedure and retry the same scoped flash. Holding BOOT while resetting is different from the running firmware's 5-second exit gesture.
 
@@ -108,11 +108,11 @@ python firmware/rootmaker/tools/board_lua.py --port PORT \
 
 This writes or replaces `ui_demo.lua`; it does not run it or enable autostart. Start it from APPS. Read the [Lua platform contract](docs/software/firmware-lua-platform.md), [peripheral API](docs/software/firmware-lua-peripherals.md), and factory examples before driving hardware.
 
-The `feat/boot_event` branch adds [`boot.poll()`](docs/software/firmware-lua-boot-events.md)
+V0.10.3 includes [`boot.poll()`](docs/software/firmware-lua-boot-events.md)
 for click, double-click and 3-second long-press events. The C-owned 5-second exit remains;
 a long press used to exit can also deliver the earlier 3-second event. See the bounded
-[Lua example](firmware/rootmaker/scripts/boot_events_demo.lua). This branch feature is not
-implied by the V0.10.2 version label or by a simulator without an input backend.
+[Lua example](firmware/rootmaker/scripts/boot_events_demo.lua). Earlier V0.10.2 builds are
+not guaranteed to contain this interface; a simulator also needs an input backend.
 
 ## Desktop UI simulator
 
@@ -155,7 +155,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md). Commits and PR titles use fixed emoji/t
 🐛 fix(ui): 修复应用详情返回按钮的触摸判定
 ```
 
-Update `main` **only through PRs**, including administrator changes. The required **ESP32-S3 build** must pass before merging. CI gates **merging**, not opening a PR. Use the Chinese-first template for additions, removals, modifications, precautions, and verification. Build success does not imply device acceptance.
+Update `main` **only through PRs**, including administrator changes. Both **Firmware version** and **ESP32-S3 build** must pass before merging. Every PR must increase `PROJECT_VER`, including documentation-only changes; CI also checks the built binary and native VERSION pages. CI gates **merging**, not opening a PR. Use the Chinese-first template for additions, removals, modifications, precautions, version changes, and verification. Build success does not imply device acceptance.
 
 ## License status
 

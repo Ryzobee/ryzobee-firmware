@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-set(PROJECT_VER "0.10.2")
+set(PROJECT_VER "0.10.3")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(ryzobee_rootmaker)
 set(ryz_factory_directory "${CMAKE_BINARY_DIR}/factory-scripts")

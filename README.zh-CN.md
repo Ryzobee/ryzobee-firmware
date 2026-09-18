@@ -7,7 +7,7 @@
 <p align="center">启动 · 配网 · 运行 · 创作</p>
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center"><a href="#从源码部署">编译与烧录</a> · <a href="docs/software/user-guide-v0.10.1/README.md">使用指南</a> · <a href="#桌面模拟器">模拟器</a> · <a href="docs/software/firmware-lua-platform.md">Lua API</a> · <a href="CONTRIBUTING.md">参与贡献</a></p>
-<p align="center">V0.10.2 · ESP32-S3 · C + Lua + LVGL · 240×240 触摸界面</p>
+<p align="center">V0.10.3 · ESP32-S3 · C + Lua + LVGL · 240×240 触摸界面</p>
 <p align="center"><a href="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml"><img src="https://github.com/Ryzobee/ryzobee-firmware/actions/workflows/firmware.yml/badge.svg?branch=main" alt="main 分支固件编译状态"></a> · <a href="#许可证状态">许可证状态</a></p>
 
 本仓库提供 ESP32-S3 系统固件、原生 240×240 LVGL 界面、有界 Lua 应用运行时、出厂工具和同源桌面模拟器。C 负责硬件与系统服务，用户用 Lua 编写界面和外设业务，不需要为每个工具新增专属 C 组件。RyzoBee Studio 独立维护，编译本固件不依赖 Studio。
@@ -90,7 +90,7 @@ idf.py build
 idf.py -p PORT flash monitor
 ```
 
-该命令写入 bootloader、分区表、OTA 元数据、应用和 scripts 镜像。按 **Ctrl+]** 退出监视器。启动后在 **SETTING → VERSION** 核对 **V0.10.2**。
+该命令写入 bootloader、分区表、OTA 元数据、应用和 scripts 镜像。按 **Ctrl+]** 退出监视器。启动后在 **SETTING → VERSION** 核对 **V0.10.3**。
 
 支持的板卡通过 DTR/RTS 自动进入下载并复位。连接失败先检查端口、线缆和占用，保留原始错误，不要仅凭一次失败判断不支持自动下载。确需手动下载时，按板卡 BOOT/复位方法进入下载模式后重试同一烧录范围。按住 BOOT 复位与系统运行时的 5 秒退出不是同一操作。
 
@@ -108,10 +108,10 @@ python firmware/rootmaker/tools/board_lua.py --port PORT \
 
 该命令写入或覆盖 `ui_demo.lua`，不会自动运行或设置自启；从 APPS 启动即可。操作外设前阅读 [Lua 平台契约](docs/software/firmware-lua-platform.md)、[外设 API](docs/software/firmware-lua-peripherals.md)，参考出厂脚本，并核对接线、供电和电平。
 
-`feat/boot_event` 分支增加 [`boot.poll()`](docs/software/firmware-lua-boot-events.md)
+V0.10.3 包含 [`boot.poll()`](docs/software/firmware-lua-boot-events.md)
 单击、双击及 3 秒长按事件，C 所有的约 5 秒退出保留；为了退出而持续按住也可能
 先收到 3 秒事件。可参考[有界 Lua 示例](firmware/rootmaker/scripts/boot_events_demo.lua)。
-该分支功能不由 V0.10.2 版本号自动证明，也不等同于无输入后端的模拟器已支持实体按键。
+旧 V0.10.2 构建不保证包含该接口；模拟器也需要接入输入后端才能使用实体按键事件。
 
 ## 桌面模拟器
 
@@ -154,7 +154,7 @@ open firmware/rootmaker/build-host/simulator/v5_simulator.app
 🐛 fix(ui): 修复应用详情返回按钮的触摸判定
 ```
 
-`main` **仅通过 PR 更新**，管理员也遵守。合并前必须通过 **ESP32-S3 build**。可以先创建 PR 再等待 CI，门禁限制的是**合并**而非创建 PR。简介以中文为主，写明新增、删除、修改、注意事项和验证。编译通过不等于实机功能验收通过。
+`main` **仅通过 PR 更新**，管理员也遵守。合并前必须通过 **Firmware version** 和 **ESP32-S3 build**。每个 PR 都必须递增 `PROJECT_VER`，纯文档修改也不例外；CI 同时核对实际固件产物与原生 VERSION 页面。可以先创建 PR 再等待 CI，门禁限制的是**合并**而非创建 PR。简介以中文为主，写明新增、删除、修改、注意事项、版本变化和验证。编译通过不等于实机功能验收通过。
 
 ## 许可证状态
 

@@ -15,9 +15,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  firmware-version:
+    # Manual checks lack a PR base and must not satisfy the required PR context.
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual firmware version' || 'Firmware version' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source and comparison history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test version gate including rejection cases
+        run: python3 -m unittest discover -s tools/tests -p 'test_check_firmware_version.py'
+      - name: Require an increased firmware version on every PR
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            pull_request)
+              test -n "$PR_BASE_SHA"
+              python3 tools/check_firmware_version.py --base-ref "$PR_BASE_SHA"
+              ;;
+            push)
+              test -n "$PUSH_BASE_SHA"
+              python3 tools/check_firmware_version.py --base-ref "$PUSH_BASE_SHA"
+              ;;
+            workflow_dispatch)
+              python3 tools/check_firmware_version.py
+              ;;
+            *) exit 1 ;;
+          esac
   firmware-build:
-    # Keep this name stable: main branch protection requires this check.
-    name: ESP32-S3 build
+    # Keep the PR context stable; manual builds have a separate check name.
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual ESP32-S3 build' || 'ESP32-S3 build' }}
+    needs: firmware-version
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -32,3 +68,15 @@ jobs:
           target: esp32s3
           path: firmware/rootmaker
           command: export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) && idf.py build
+      - name: Verify the built firmware version, not only its source declaration
+        run: python3 tools/check_firmware_version.py --build-dir firmware/rootmaker/build
+      - name: Build native VERSION page test without SDL
+        run: |
+          cmake -S firmware/rootmaker/host/pixels -B firmware/rootmaker/build-host/version-ci -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug -DRYZ_IDF_BUILD="$GITHUB_WORKSPACE/firmware/rootmaker/build" \
+            -DRYZ_BUILD_SDL_SIMULATOR=OFF
+          cmake --build firmware/rootmaker/build-host/version-ci --target v5_shell_ui_test --parallel 2
+      - name: Verify Settings, Version and Info display the current firmware version
+        env:
+          UBSAN_OPTIONS: halt_on_error=1
+        run: firmware/rootmaker/build-host/version-ci/v5_shell_ui_test release-version
